@@ -13,3 +13,5 @@ npm-debug.log*
 # Build / dist output
 dist/
 build/
+
+#.env
