@@ -1,0 +1,14 @@
+
+# Root ignores
+node_modules/
+.DS_Store
+.env
+npm-debug.log*
+yarn-error.log*
+
+# Optional: Mac / Linux system files
+*.swp
+*.swo
+
+# Optional: VSCode
+.vscode/
