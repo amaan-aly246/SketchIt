@@ -31,6 +31,13 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (reason) => {
     console.log(`❌ socket disconnected, id : ${socket.id}, reason: ${reason}`);
   });
+  socket.on("clearCanvas", () => {
+    socket.broadcast.emit('clearCanvas');
+  })
+  socket.on("drawStroke", (points: { x: number; y: number }[], tool: "pen" | "eraser") => {
+    // broadcast the stroke to all other clients
+    socket.broadcast.emit("receive", points, tool);
+  });
 })
 
 
