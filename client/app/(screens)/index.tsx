@@ -1,10 +1,8 @@
 import { PanResponder, Text, TouchableOpacity, View } from "react-native";
 import { Canvas, Path, Skia, SkPath } from "@shopify/react-native-skia";
-import { io } from "socket.io-client";
 import { useEffect, useState, useRef } from "react";
-import config from "./config";
-
-const socket = io(config.env.server_url, { autoConnect: false });
+import socket from "../websocket";
+import { useUserHook } from "@/Context/UserContext";
 
 type DrawPath = {
   path: SkPath;
@@ -12,15 +10,15 @@ type DrawPath = {
 };
 
 export default function Index() {
+  // const { roomId } = useUserHook()
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
-
   const [paths, setPaths] = useState<DrawPath[]>([]);
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
 
   const onPressClearCanvas = () => {
     setPaths([]);
-    socket.emit('clearCanvas');
+    socket.emit('clearCanvas', "abc123");
   }
   const onPressConnectToSocket = () => socket.connect();
   const onPressDisconnectToSocket = () => socket.disconnect();
@@ -77,7 +75,7 @@ export default function Index() {
     onPanResponderRelease() {
       if (currentPath) {
         setPaths((prev) => [...prev, currentPath]);
-        socket.emit("drawStroke", currentStrokePoints.current, currentPath.tool);
+        socket.emit("drawStroke", currentStrokePoints.current, currentPath.tool, "abc123");
         currentStrokePoints.current = [];
         setCurrentPath(null);
       }

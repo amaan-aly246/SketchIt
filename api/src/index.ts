@@ -28,15 +28,28 @@ app.get("/ping", (_req, res) => {
 });
 io.on("connection", (socket) => {
   console.log(`websokcet connected , id : ${socket.id}`)
+
+  socket.on("joinRoom", (roomId) => {
+    socket.join(roomId);
+    console.log(`socket : ${socket.id} has joined the room : ${roomId} `);
+    // console all the curr sockets in the room : roomId
+
+  })
+
+  socket.on("leaveRoom", (roomId) => {
+    socket.leave(roomId)
+    console.log(`socket: ${socket.id} has left the room: ${roomId} `);
+  })
   socket.on("disconnect", (reason) => {
     console.log(`❌ socket disconnected, id : ${socket.id}, reason: ${reason}`);
   });
-  socket.on("clearCanvas", () => {
-    socket.broadcast.emit('clearCanvas');
+  socket.on("clearCanvas", (roomId) => {
+    socket.to(roomId).emit('clearCanvas');
   })
-  socket.on("drawStroke", (points: { x: number; y: number }[], tool: "pen" | "eraser") => {
+  socket.on("drawStroke", (points: { x: number; y: number }[], tool: "pen" | "eraser", roomId: string) => {
     // broadcast the stroke to all other clients
-    socket.broadcast.emit("receive", points, tool);
+    socket.to(roomId).emit("receive", points, tool);
+
   });
 })
 
