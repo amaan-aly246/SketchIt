@@ -46,6 +46,9 @@ io.on("connection", (socket) => {
   socket.on("clearCanvas", (roomId) => {
     socket.to(roomId).emit('clearCanvas');
   })
+  socket.on("sendmessage", ({ roomId, message }) => {
+    socket.to(roomId).emit('receivemessage', message);
+  })
   socket.on("drawStroke", (points: { x: number; y: number }[], tool: "pen" | "eraser", roomId: string) => {
     // broadcast the stroke to all other clients
     socket.to(roomId).emit("receive", points, tool);

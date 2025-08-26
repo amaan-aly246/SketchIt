@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "react-native";
 import "./global.css";
-import { UserContextProvider } from "@/Context/UserContext";
+import { UserContextProvider } from "./Context/UserContext";
 export default function RootLayout() {
   return (
     <>
