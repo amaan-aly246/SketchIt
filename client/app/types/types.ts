@@ -4,3 +4,9 @@ export type ChatMssg = {
   isCorrect: boolean
 
 }
+
+export type Response<T = unknown> = {
+  success: boolean;
+  data?: T;
+  error?: string;
+};

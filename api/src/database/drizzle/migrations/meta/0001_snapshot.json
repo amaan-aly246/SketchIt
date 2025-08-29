@@ -1,6 +1,6 @@
 {
-  "id": "f295e71a-381b-411a-a50c-a75fc43e3eef",
-  "prevId": "87a84a99-f0ef-47e3-ab00-acf64e6efbc5",
+  "id": "fd4edb40-ebd5-48be-acb4-18e6cf53f9d0",
+  "prevId": "3b5dfcd7-b938-4a42-bcfc-b71b9d74a221",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -14,9 +14,9 @@
           "primaryKey": true,
           "notNull": true
         },
-        "admin": {
-          "name": "admin",
-          "type": "text",
+        "admin_id": {
+          "name": "admin_id",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -42,6 +42,59 @@
       },
       "indexes": {},
       "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "rooms_admin_id_unique": {
+          "name": "rooms_admin_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "admin_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "room_id": {
+          "name": "room_id",
+          "type": "varchar(4)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "users_room_id_rooms_id_fk": {
+          "name": "users_room_id_rooms_id_fk",
+          "tableFrom": "users",
+          "tableTo": "rooms",
+          "columnsFrom": [
+            "room_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
