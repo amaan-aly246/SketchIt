@@ -1,27 +1,20 @@
-import { Tabs } from "expo-router";
+import { Stack } from "expo-router";
 import React from "react";
-
 const _layout = () => {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarShowLabel: true,
-      }}>
-      <Tabs.Screen
-        name="JoinPage"
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen
+        name="RoomScreen"
         options={{
-          title: "Play",
-          headerShown: false,
+          title: "Room"
         }}
       />
-      <Tabs.Screen
-        name="index"
+      <Stack.Screen name="index"
         options={{
-          title: "Home",
-          headerShown: false,
+          title: "Home"
         }}
       />
-    </Tabs>
+    </Stack>
   );
 };
 

@@ -7,16 +7,18 @@ import {
   View,
   Text
 } from "react-native";
-import socket from "../websocket";
+import socket from "../config/websocket";
 import { ChatMssg } from "../types/types";
+import { useUserHook } from "../Context/UserContext";
 const Chat = () => {
+  const { userData: { roomCode } } = useUserHook()
   const [message, setMessage] = useState<string>("");
   const [chatMessages, setChatMessages] = useState<ChatMssg[]>([]); // all the messages in the chat 
   const onPressSendMessage = () => {
     if (!message.trim()) return;
 
     socket.emit("sendmessage", {
-      roomId: "abc123",
+      roomCode,
       message: message.trim(),
     });
 

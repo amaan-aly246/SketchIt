@@ -1,6 +1,6 @@
 import { View, Text, TextInput } from 'react-native'
 import { TouchableOpacity } from 'react-native'
-import socket from '../websocket';
+import socket from '../config/websocket';
 import Chat from '../components/Chat';
 import { useUserHook } from '../Context/UserContext';
 import generateRoomId from '../utils/generateRoomId';
@@ -81,7 +81,7 @@ const JoinPage = () => {
     <>
 
       <View className='flex-1 justify-between gap-4 '>
-        <Text className='text-center'>Join Lobby</Text>
+        <Text className='text-center font-NunitoItalica '>Join Lobby</Text>
         <View className='text-center h-20 gap-2 mb-6 m-2'>
           <TextInput className=' border-black border-2 p-3 w-[15em] mx-auto'
             placeholder='user name'
@@ -103,6 +103,7 @@ const JoinPage = () => {
           <TextInput className=' border-black border-2 p-3 w-[15em] mx-auto '
             placeholder='room code'
             placeholderTextColor={"black"}
+
             value={roomCode ?? ""}
             onChangeText={(text) => setUserData({ ...userData, roomCode: text })}
           />

@@ -71,8 +71,6 @@ io.on("connection", (socket) => {
       }
 
       console.log(`socket : ${socket.id} has created room : ${roomCode}`);
-      // increment the  playersCount
-      await db.update(roomTable).set({ playersCount: sql`${roomTable.playersCount} + 1` }).where(eq(roomTable.id, roomCode));
 
       socket.join(roomCode);
       callback?.({
@@ -162,7 +160,7 @@ io.on("connection", (socket) => {
       // playersCount is greater than 1 so delete the user explicitly
 
       await db.delete(userTable).where(eq(userTable.id, userId));
-
+      await db.update(roomTable).set({ playersCount: sql`${roomTable.playersCount} - 1` }).where(eq(roomTable.id, roomCode));
       cb?.({
         success: true,
         data: {
@@ -186,12 +184,12 @@ io.on("connection", (socket) => {
   socket.on("clearCanvas", (roomId) => {
     socket.to(roomId).emit('clearCanvas');
   })
-  socket.on("sendmessage", ({ roomId, message }) => {
-    socket.to(roomId).emit('receivemessage', message);
+  socket.on("sendmessage", ({ roomCode, message }) => {
+    socket.to(roomCode).emit('receivemessage', message);
   })
-  socket.on("drawStroke", (points: { x: number; y: number }[], tool: "pen" | "eraser", roomId: string) => {
+  socket.on("drawstroke", (points: { x: number; y: number }[], tool: "pen" | "eraser", roomCode: string) => {
     // broadcast the stroke to all other clients
-    socket.to(roomId).emit("receive", points, tool);
+    socket.to(roomCode).emit("receive", points, tool);
 
   });
 })
