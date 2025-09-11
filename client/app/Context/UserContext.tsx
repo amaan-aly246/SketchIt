@@ -38,3 +38,5 @@ export const useUserHook = () => {
 
   return context;
 };
+
+export default UserContext

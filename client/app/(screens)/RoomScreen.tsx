@@ -13,7 +13,6 @@ const RoomScreen = () => {
 
         </View>
 
-        {/* join room screen */}
         {
           mode == "join" ?
             <>
@@ -28,7 +27,6 @@ const RoomScreen = () => {
                 <Text className='mx-auto uppercase w-[10em] border-2 font-NunitoItalica bg-secondary-light text-primary-dark text-center text-xl py-4 rounded-2xl'>join room</Text>
               </TouchableOpacity>
             </>
-            // create room screen
             : <>
 
               <View>

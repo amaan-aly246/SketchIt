@@ -36,7 +36,11 @@ const Home = () => {
           </TouchableOpacity>
         </View>
         <View className='flex '>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => {
+            router.push({
+              pathname: '/PlayScreen'
+            })
+          }}>
 
             <View className='ml-10 mt-10'>
               <FontAwesomeIcon size={40} icon={faCircleInfo as any} color='#F4E9D9' />
