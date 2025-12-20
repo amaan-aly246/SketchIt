@@ -4,14 +4,9 @@ const _layout = () => {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen
-        name="RoomScreen"
+        name="index"
         options={{
-          title: "Room"
-        }}
-      />
-      <Stack.Screen name="index"
-        options={{
-          title: "Home"
+          title: "Home",
         }}
       />
     </Stack>

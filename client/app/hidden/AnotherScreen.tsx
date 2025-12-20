@@ -9,8 +9,10 @@ type DrawPath = {
   tool: "pen" | "eraser";
 };
 
-export default function Index() {
-  const { userData: { roomCode } } = useUserHook()
+export default function AnotherScreen() {
+  const {
+    userData: { roomCode },
+  } = useUserHook();
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
   const [paths, setPaths] = useState<DrawPath[]>([]);
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
@@ -18,18 +20,20 @@ export default function Index() {
 
   const onPressClearCanvas = () => {
     setPaths([]);
-    socket.emit('clearcanvas', { roomCode });
-  }
+    socket.emit("clearcanvas", { roomCode });
+  };
   const onPressConnectToSocket = () => socket.connect();
   const onPressDisconnectToSocket = () => socket.disconnect();
 
   useEffect(() => {
     socket.on("connect", () => console.log(`Connected: ${socket.id}`));
     socket.on("disconnect", () => console.log(`Disconnected`));
-    socket.on("connect_error", (err) => console.log("Connection error:", err.message));
+    socket.on("connect_error", (err) =>
+      console.log("Connection error:", err.message)
+    );
     socket.on("clearcanvas", () => {
-      setPaths([])
-    })
+      setPaths([]);
+    });
     socket.on(
       "receive",
       (points: { x: number; y: number }[], receivedTool: "pen" | "eraser") => {
@@ -67,7 +71,10 @@ export default function Index() {
       const { locationX: x, locationY: y } = e.nativeEvent;
       if (currentPath) {
         currentPath.path.lineTo(x, y);
-        setCurrentPath({ path: currentPath.path.copy(), tool: currentPath.tool });
+        setCurrentPath({
+          path: currentPath.path.copy(),
+          tool: currentPath.tool,
+        });
         currentStrokePoints.current.push({ x, y });
       }
     },
@@ -75,11 +82,16 @@ export default function Index() {
     onPanResponderRelease() {
       if (currentPath) {
         setPaths((prev) => [...prev, currentPath]);
-        socket.emit("drawstroke", currentStrokePoints.current, currentPath.tool, roomCode);
+        socket.emit(
+          "drawstroke",
+          currentStrokePoints.current,
+          currentPath.tool,
+          roomCode
+        );
         currentStrokePoints.current = [];
         setCurrentPath(null);
       }
-    }
+    },
   });
 
   return (
@@ -108,25 +120,35 @@ export default function Index() {
       </View>
 
       <View className="mb-6 gap-4">
-        <TouchableOpacity className="bg-blue-500 w-[10em] p-5 mx-auto" onPress={onPressClearCanvas}>
+        <TouchableOpacity
+          className="bg-blue-500 w-[10em] p-5 mx-auto"
+          onPress={onPressClearCanvas}>
           <Text className="font-semibold text-white">Clear canvas</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="bg-blue-500 w-[10em] p-5 mx-auto" onPress={onPressConnectToSocket}>
+        <TouchableOpacity
+          className="bg-blue-500 w-[10em] p-5 mx-auto"
+          onPress={onPressConnectToSocket}>
           <Text className="font-semibold text-white">Connect to websocket</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="bg-blue-500 w-[10em] p-5 mx-auto" onPress={onPressDisconnectToSocket}>
+        <TouchableOpacity
+          className="bg-blue-500 w-[10em] p-5 mx-auto"
+          onPress={onPressDisconnectToSocket}>
           <Text className="font-semibold text-white">Disconnect websocket</Text>
         </TouchableOpacity>
       </View>
 
       <View className="flex-row mb-6 mx-auto gap-2">
-        <TouchableOpacity className="bg-purple-300 p-5" onPress={() => setTool("eraser")}>
+        <TouchableOpacity
+          className="bg-purple-300 p-5"
+          onPress={() => setTool("eraser")}>
           <Text>Eraser</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="bg-purple-300 p-5" onPress={() => setTool("pen")}>
+        <TouchableOpacity
+          className="bg-purple-300 p-5"
+          onPress={() => setTool("pen")}>
           <Text>Pen</Text>
         </TouchableOpacity>
       </View>
