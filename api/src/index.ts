@@ -4,7 +4,6 @@ import cors from "cors";
 import config from "./config";
 import roomRoutes from "./routes/roomRoutes";
 import { initSocket } from "./socket";
-
 const app = express();
 const PORT = parseInt(config.env.port, 10);
 

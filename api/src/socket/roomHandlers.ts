@@ -3,9 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "../database/db";
 import { roomTable, userTable } from "../database/schema/tables";
 import { eq, sql } from "drizzle-orm";
-
-export const activeRooms = new Map();
-
+// export const activeRooms = new Map();
+import {
+  saveParticipants,
+  getParticipants,
+  checkRoomExists,
+  deleteRoom,
+} from "../utils/redisHelpers";
 export const registerRoomHandlers = (io: Server, socket: Socket) => {
   // create room handler
   socket.on(
@@ -33,10 +37,15 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
           .returning();
 
         socket.join(roomCode);
-        activeRooms.set(roomCode, [{ userId: adminId, userName }]);
+        await saveParticipants(roomCode, [{ userid: adminId, userName }]);
+        // activeRooms.set(roomCode, [{ userId: adminId, userName }]);
 
         callback?.({ success: true, data: { userId: adminId } });
-        io.to(roomCode).emit("updateParticipants", activeRooms.get(roomCode));
+        // io.to(roomCode).emit("updateParticipants", activeRooms.get(roomCode));
+        io.to(roomCode).emit(
+          "updateParticipants",
+          await getParticipants(roomCode)
+        );
       } catch (error) {
         callback?.({ success: false, error: "Internal server error" });
       }
@@ -61,8 +70,11 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         .where(eq(roomTable.id, roomCode));
 
       socket.join(roomCode);
-      if (!activeRooms.has(roomCode)) activeRooms.set(roomCode, []);
-      const participants = activeRooms.get(roomCode);
+      //   if (!activeRooms.has(roomCode)) activeRooms.set(roomCode, []);
+      const isRoomExists = await checkRoomExists(roomCode);
+      if (!isRoomExists) await saveParticipants(roomCode, []);
+      //   const participants = activeRooms.get(roomCode);
+      const participants = await getParticipants(roomCode);
       participants.push({ userId, userName });
 
       cb?.({ success: true, data: { userId } });
@@ -97,7 +109,8 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         // this means this is the last user so when that user leave room should be deleted from the db.
         // If we delete the room , due to DELETE CASCADE user entry will also be removed, preventing us from deleting it explicitly
         await db.delete(roomTable).where(eq(roomTable.id, roomCode));
-        activeRooms.delete(roomCode); // Clear memory
+        // activeRooms.delete(roomCode); // Clear memory
+        await deleteRoom(roomCode); // clear memory
         socket.leave(roomCode);
         io.to(roomCode).emit("updateParticipants", []);
         return cb?.({
@@ -117,14 +130,38 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         .where(eq(roomTable.id, roomCode));
 
       socket.leave(roomCode);
-      if (activeRooms.has(roomCode)) {
-        const updatedList = activeRooms
-          .get(roomCode)
-          .filter((p: any) => p.userId !== userId);
-        activeRooms.set(roomCode, updatedList);
-        console.log("leave room , particants list from server", updatedList);
-        // Broadcast NEW list to the remaining players
-        io.to(roomCode).emit("updateParticipants", updatedList);
+      //   if (activeRooms.has(roomCode)) {
+      //     const updatedList = activeRooms
+      //       .get(roomCode)
+      //       .filter((p: any) => p.userId !== userId);
+      //     activeRooms.set(roomCode, updatedList);
+      //     console.log("leave room , particants list from server", updatedList);
+      //     // Broadcast NEW list to the remaining players
+      //     io.to(roomCode).emit("updateParticipants", updatedList);
+      //   }
+      const isRoomExists = await checkRoomExists(roomCode);
+      if (isRoomExists) {
+        // Fetch the current list from Redis
+        const currentParticipants = await getParticipants(roomCode);
+
+        //Filter out the user who is leaving
+        const updatedList = currentParticipants.filter(
+          (p: any) => p.userId !== userId
+        );
+
+        if (updatedList.length > 0) {
+          // Save the updated list back to Redis
+          await saveParticipants(roomCode, updatedList);
+
+          console.log("User left. Updated list in Redis:", updatedList);
+
+          // Broadcast NEW list to the remaining players
+          io.to(roomCode).emit("updateParticipants", updatedList);
+        } else {
+          // If the list is empty, delete the room entirely from Redis
+          await deleteRoom(roomCode);
+          console.log(`Room ${roomCode} deleted from Redis as it is empty.`);
+        }
       }
       cb?.({
         success: true,
