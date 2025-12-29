@@ -76,6 +76,27 @@ const PlayScreen = () => {
       socket.off("clearcanvas");
     };
   }, []);
+  useEffect(() => {
+    if (userData.canvasHistory && userData.canvasHistory.length > 0) {
+      console.log("Restoring canvas history...");
+
+      const restoredPaths = userData.canvasHistory.map((stroke: any) => {
+        const skPath = Skia.Path.Make();
+
+        stroke.points.forEach((pt: { x: number; y: number }, i: number) => {
+          if (i === 0) skPath.moveTo(pt.x, pt.y);
+          else skPath.lineTo(pt.x, pt.y);
+        });
+
+        return {
+          path: skPath,
+          tool: stroke.tool,
+        };
+      });
+
+      setPaths(restoredPaths);
+    }
+  }, []);
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
 

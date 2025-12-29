@@ -3,12 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "../database/db";
 import { roomTable, userTable } from "../database/schema/tables";
 import { eq, sql } from "drizzle-orm";
-// export const activeRooms = new Map();
 import {
   saveParticipants,
   getParticipants,
   checkRoomExists,
   deleteRoom,
+  getCanvasHistory,
 } from "../utils/redisHelpers";
 export const registerRoomHandlers = (io: Server, socket: Socket) => {
   // create room handler
@@ -38,10 +38,7 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
 
         socket.join(roomCode);
         await saveParticipants(roomCode, [{ userid: adminId, userName }]);
-        // activeRooms.set(roomCode, [{ userId: adminId, userName }]);
-
         callback?.({ success: true, data: { userId: adminId } });
-        // io.to(roomCode).emit("updateParticipants", activeRooms.get(roomCode));
         io.to(roomCode).emit(
           "updateParticipants",
           await getParticipants(roomCode)
@@ -70,14 +67,12 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         .where(eq(roomTable.id, roomCode));
 
       socket.join(roomCode);
-      //   if (!activeRooms.has(roomCode)) activeRooms.set(roomCode, []);
       const isRoomExists = await checkRoomExists(roomCode);
       if (!isRoomExists) await saveParticipants(roomCode, []);
-      //   const participants = activeRooms.get(roomCode);
       const participants = await getParticipants(roomCode);
       participants.push({ userId, userName });
-
-      cb?.({ success: true, data: { userId } });
+      const history = await getCanvasHistory(roomCode);
+      cb?.({ success: true, data: { userId, canvasHistory: history } });
       io.to(roomCode).emit("updateParticipants", participants);
     } catch (e) {
       cb?.({ success: false, error: "Internal error" });
@@ -109,7 +104,6 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         // this means this is the last user so when that user leave room should be deleted from the db.
         // If we delete the room , due to DELETE CASCADE user entry will also be removed, preventing us from deleting it explicitly
         await db.delete(roomTable).where(eq(roomTable.id, roomCode));
-        // activeRooms.delete(roomCode); // Clear memory
         await deleteRoom(roomCode); // clear memory
         socket.leave(roomCode);
         io.to(roomCode).emit("updateParticipants", []);
@@ -130,15 +124,6 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         .where(eq(roomTable.id, roomCode));
 
       socket.leave(roomCode);
-      //   if (activeRooms.has(roomCode)) {
-      //     const updatedList = activeRooms
-      //       .get(roomCode)
-      //       .filter((p: any) => p.userId !== userId);
-      //     activeRooms.set(roomCode, updatedList);
-      //     console.log("leave room , particants list from server", updatedList);
-      //     // Broadcast NEW list to the remaining players
-      //     io.to(roomCode).emit("updateParticipants", updatedList);
-      //   }
       const isRoomExists = await checkRoomExists(roomCode);
       if (isRoomExists) {
         // Fetch the current list from Redis

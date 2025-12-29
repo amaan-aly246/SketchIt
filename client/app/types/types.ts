@@ -16,3 +16,8 @@ export type DrawPath = {
   path: SkPath;
   tool: "pen" | "eraser";
 };
+
+export type Stroke = {
+  points: { x: number; y: number }[];
+  tool: "pen" | "eraser";
+};

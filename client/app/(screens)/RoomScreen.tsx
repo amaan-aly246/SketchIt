@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { useUserHook } from "../Context/UserContext";
 import generateRoomId from "../utils/generateRoomId";
-import { Response } from "../types/types";
+import { Response, Stroke } from "../types/types";
 import socket from "../config/websocket";
 import { useState, useCallback } from "react";
 import { useRouter } from "expo-router";
@@ -18,6 +18,7 @@ type CreateRoomData = {
 
 type JoinRoomData = {
   userId: string;
+  canvasHistory: Stroke[];
 };
 const RoomScreen = () => {
   const router = useRouter();
@@ -140,6 +141,7 @@ const RoomScreen = () => {
                 roomCode,
                 userId: data.userId,
                 roomName,
+                canvasHistory: response.data?.canvasHistory || [],
               });
               router.push({
                 pathname: "/PlayScreen",

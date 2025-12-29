@@ -1,20 +1,22 @@
 import { Server, Socket } from "socket.io";
 import { checkWord } from "../utils/checkWord";
-
+import { saveStroke, clearCanvasHistory } from "../utils/redisHelpers";
 export const registerGameHandlers = (io: Server, socket: Socket) => {
   socket.on(
     "drawstroke",
-    (
+    async (
       points: { x: number; y: number }[],
       tool: "pen" | "eraser",
       roomCode: string
     ) => {
+      await saveStroke(roomCode, { points, tool });
       // Broadcast the stroke to everyone in the room except the sender
       socket.to(roomCode).emit("receive", points, tool);
     }
   );
 
-  socket.on("clearcanvas", (roomCode: string) => {
+  socket.on("clearcanvas", async (roomCode: string) => {
+    await clearCanvasHistory(roomCode);
     // Send to everyone else in the room
     socket.to(roomCode).emit("clearcanvas");
   });

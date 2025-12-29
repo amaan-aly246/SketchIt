@@ -1,10 +1,14 @@
 import { createContext, useState, ReactNode, useContext } from "react";
-
+type Stroke = {
+  points: { x: number; y: number }[];
+  tool: "pen" | "eraser";
+};
 type UserData = {
   userId: string | null;
   userName: string | null;
   roomName: string | null;
   roomCode: string | null;
+  canvasHistory: Stroke[];
 };
 
 type UserContextType = {
@@ -20,6 +24,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
     userName: null,
     roomName: null,
     roomCode: null,
+    canvasHistory: [],
   });
 
   return (
@@ -39,4 +44,4 @@ export const useUserHook = () => {
   return context;
 };
 
-export default UserContext
+export default UserContext;

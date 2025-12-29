@@ -27,3 +27,20 @@ export const deleteRoom = async (roomCode: string) => {
   const key = getRoomKey(roomCode);
   await redis.del(key);
 };
+
+export const saveStroke = async (roomCode: string, strokeData: any) => {
+  const key = `room:${roomCode}:canvas`;
+  // Push the new stroke to the end of the list
+  await redis.rpush(key, JSON.stringify(strokeData));
+  await redis.expire(key, 86400); // 24h expiry
+};
+
+export const getCanvasHistory = async (roomCode: string) => {
+  const key = `room:${roomCode}:canvas`;
+  const strokes = await redis.lrange(key, 0, -1);
+  return strokes.map((s) => JSON.parse(s));
+};
+
+export const clearCanvasHistory = async (roomCode: string) => {
+  await redis.del(`room:${roomCode}:canvas`);
+};
