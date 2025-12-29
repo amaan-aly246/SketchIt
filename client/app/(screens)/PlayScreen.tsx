@@ -37,6 +37,7 @@ const PlayScreen = () => {
           roomCode: null,
           roomName: null,
           userName: null,
+          canvasHistory: [],
         });
         if (socket.connected) {
           socket.disconnect();
