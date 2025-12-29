@@ -9,6 +9,16 @@ import { ChatMssg } from "../types/types";
 import { useEffect, useState } from "react";
 import socket from "../config/websocket";
 
+const testData = [
+  {
+    isCorrect: true,
+    message: "mssg1",
+  },
+  {
+    isCorrect: false,
+    message: "mssg2",
+  },
+];
 const ChatScreen = () => {
   const [chatMessages, setChatMessages] = useState<ChatMssg[]>([]);
   useEffect(() => {
@@ -31,7 +41,8 @@ const ChatScreen = () => {
             {item.message}
           </Text>
         )}
-        contentContainerStyle={styles.container}
+        // contentContainerStyle={styles.container}
+        className="flex-[60] h-full bg-secondary"
       />
     </>
   );
@@ -42,17 +53,16 @@ export default ChatScreen;
 const styles = StyleSheet.create({
   container: {
     padding: 10,
-    backgroundColor: "red",
+    backgroundColor: "yellow",
     flexGrow: 1,
   },
   mssg: {
     padding: 10,
-    marginVertical: 8,
     backgroundColor: "#f9f9f9",
   },
   successMssg: {
     padding: 10,
-    marginVertical: 8,
+    marginTop: 2,
     backgroundColor: "#90EE90",
   },
 });

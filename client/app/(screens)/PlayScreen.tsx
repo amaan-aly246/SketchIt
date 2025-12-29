@@ -13,6 +13,7 @@ import { DrawPath } from "../types/types";
 import { useUserHook } from "../Context/UserContext";
 import { useRouter } from "expo-router";
 import ChatScreen from "../components/ChatScreen";
+import LeaderBoard from "../components/LeaderBoard";
 const PlayScreen = () => {
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
   const { userData, setUserData } = useUserHook();
@@ -167,8 +168,11 @@ const PlayScreen = () => {
           </Canvas>
         </View>
 
-        <View className="flex-[40] bg-lime-300  ">
-          <ChatScreen />
+        <View className="flex-[40]  bg-lime-300  ">
+          <View className="flex-row flex-1">
+            <LeaderBoard />
+            <ChatScreen />
+          </View>
         </View>
 
         <View className="  absolute bottom-0 right-0 left-0">
