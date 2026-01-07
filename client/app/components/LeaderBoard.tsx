@@ -23,16 +23,18 @@ type participant = {
 const LeaderBoard = () => {
   const [participants, setParticipants] = useState<participant[]>([]);
 
-  // @ts-ignore
   useEffect(() => {
-    console.log("LeaderBoard Mounted. Socket Connected:", socket.connected);
+    if (socket.connected) {
+      console.log("LeaderBoard Mounted. Socket Connected:", socket.connected);
+      socket.on("updateParticipants", (userList) => {
+        console.log("✅ Received list:", userList);
+        setParticipants(userList);
+      });
+    }
 
-    socket.on("updateParticipants", (userList) => {
-      console.log("✅ Received list:", userList);
-      setParticipants(userList);
-    });
-
-    return () => socket.off("updateParticipants");
+    return () => {
+      socket.off("updateParticipants");
+    };
   }, []);
 
   return (

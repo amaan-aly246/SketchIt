@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { TextInput, TouchableOpacity, View, Text } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import socket from "../config/websocket";
 import { useUserHook } from "../Context/UserContext";
 import Keyboard from "./Keyboard";

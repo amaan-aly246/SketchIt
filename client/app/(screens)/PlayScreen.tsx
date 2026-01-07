@@ -13,7 +13,10 @@ import { DrawPath } from "../types/types";
 import { useUserHook } from "../Context/UserContext";
 import { useRouter } from "expo-router";
 import ChatScreen from "../components/ChatScreen";
+import { Ionicons } from "@expo/vector-icons";
 import LeaderBoard from "../components/LeaderBoard";
+import ScoreboardModal from "../components/ScoreboardModal";
+import GameMenu from "../components/GameMenu";
 const PlayScreen = () => {
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
   const { userData, setUserData } = useUserHook();
@@ -21,7 +24,26 @@ const PlayScreen = () => {
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
   const [paths, setPaths] = useState<DrawPath[]>([]);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
+  const [isScoreboardVisible, setIsScoreboardVisible] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
   const router = useRouter();
+  const participants = [
+    {
+      userId: "1",
+      userName: "amaan",
+      score: 10,
+    },
+    {
+      userId: "2",
+      userName: "amaan2",
+      score: 10,
+    },
+    {
+      userId: "3",
+      userName: "amaan3",
+      score: 10,
+    },
+  ];
   const onPressLeaveRoom = () => {
     if (!roomCode) {
       console.error(`Room code is required and its not present`);
@@ -141,31 +163,25 @@ const PlayScreen = () => {
       <View className="flex-1">
         <View className="flex-[10] bg-yellow-200 flex-row items-center justify-around">
           <TouchableOpacity
-            className="bg-blue-500 px-4 py-2 rounded"
-            onPress={onPressLeaveRoom}>
-            <Text className="text-white font-semibold">Leave</Text>
+            onPress={() => setIsScoreboardVisible(true)}
+            className=" bg-orange-500 p-2  ">
+            <Text className="text-white">Test Modal</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            className={`px-4 py-2 rounded ${
-              tool === "eraser" ? "bg-green-400" : "bg-blue-500"
-            }`}
-            onPress={() => setTool("eraser")}>
-            <Text className="font-semibold text-white">Eraser</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className={`px-4 py-2 rounded ${
-              tool === "pen" ? "bg-green-400" : "bg-blue-500"
-            }`}
-            onPress={() => setTool("pen")}>
-            <Text className="font-semibold text-white">Pen</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className={`px-4 py-2 rounded  bg-blue-500`}
-            onPress={onPressClearCanvas}>
-            <Text className="font-semibold text-white">Clear canvas</Text>
-          </TouchableOpacity>
+          <View className="h-14 flex-row items-center justify-between px-4 bg-yellow-200">
+            <Text className="font-black text-secondary">{roomName}</Text>
+            <TouchableOpacity onPress={() => setIsMenuVisible(true)}>
+              <Ionicons name="menu" size={32} color="#333" />
+            </TouchableOpacity>
+          </View>
+          <GameMenu
+            isVisible={isMenuVisible}
+            onClose={() => setIsMenuVisible(false)}
+            onLeave={onPressLeaveRoom}
+            onClear={onPressClearCanvas}
+            setTool={setTool}
+            currentTool={tool}
+          />
         </View>
 
         <View className="flex-[40]  " {...panResponder.panHandlers}>
@@ -196,7 +212,11 @@ const PlayScreen = () => {
             <ChatScreen />
           </View>
         </View>
-
+        <ScoreboardModal
+          isVisible={isScoreboardVisible}
+          onClose={() => setIsScoreboardVisible(false)}
+          participants={participants} // Pass your current participants list
+        />
         <View className="  absolute bottom-0 right-0 left-0">
           <Chat />
         </View>
