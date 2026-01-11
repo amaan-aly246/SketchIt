@@ -60,6 +60,7 @@ const PlayScreen = () => {
           roomName: null,
           userName: null,
           canvasHistory: [],
+          foundAnswer: false,
         });
         if (socket.connected) {
           socket.disconnect();
@@ -161,12 +162,14 @@ const PlayScreen = () => {
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <View className="flex-1">
+        {/* Top heading */}
         <View className="flex-[10] bg-yellow-200 flex-row items-center justify-around">
           <TouchableOpacity
             onPress={() => setIsScoreboardVisible(true)}
             className=" bg-orange-500 p-2  ">
             <Text className="text-white">Test Modal</Text>
           </TouchableOpacity>
+          <Text>{roomCode} </Text>
 
           <View className="h-14 flex-row items-center justify-between px-4 bg-yellow-200">
             <Text className="font-black text-secondary">{roomName}</Text>
@@ -174,6 +177,7 @@ const PlayScreen = () => {
               <Ionicons name="menu" size={32} color="#333" />
             </TouchableOpacity>
           </View>
+
           <GameMenu
             isVisible={isMenuVisible}
             onClose={() => setIsMenuVisible(false)}
@@ -184,6 +188,7 @@ const PlayScreen = () => {
           />
         </View>
 
+        {/* Canvas  */}
         <View className="flex-[40]  " {...panResponder.panHandlers}>
           <Canvas style={{ flex: 1, backgroundColor: "white" }}>
             {paths.map((p, i) => (

@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { TextInput, TouchableOpacity, View, Text } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import socket from "../config/websocket";
 import { useUserHook } from "../Context/UserContext";
 import Keyboard from "./Keyboard";
 const Chat = () => {
   const {
-    userData: { roomCode, userId, userName },
+    userData: { roomCode, userId, userName, foundAnswer },
   } = useUserHook();
   const [message, setMessage] = useState<string>("");
   const [keyboardState, setKeyboardState] = useState<"visible" | "hidden">(
@@ -42,7 +41,7 @@ const Chat = () => {
       <View className="bg-primary flex-row items-center ">
         <TextInput
           className="border-sky-100 border-2 flex-1 text-white px-2 py-2 "
-          placeholder="Enter your guess"
+          placeholder={foundAnswer ? "You gussed already." : "Enter your guess"}
           placeholderTextColor="white"
           value={message}
           onChangeText={setMessage}
@@ -52,10 +51,10 @@ const Chat = () => {
         />
         <TouchableOpacity
           className={`p-3 ml-2 w-24 ${
-            message.trim() ? "bg-blue-500" : "bg-blue-200"
+            message.trim() && !foundAnswer ? "bg-blue-500" : "bg-blue-200"
           }`}
           onPress={onPressSendMessage}
-          disabled={!message.trim()}>
+          disabled={!message.trim() || foundAnswer}>
           <Text className="text-center text-white font-semibold">Send</Text>
         </TouchableOpacity>
       </View>

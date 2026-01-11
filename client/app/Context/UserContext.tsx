@@ -9,6 +9,7 @@ type UserData = {
   roomName: string | null;
   roomCode: string | null;
   canvasHistory: Stroke[];
+  foundAnswer: boolean;
 };
 
 type UserContextType = {
@@ -25,6 +26,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
     roomName: null,
     roomCode: null,
     canvasHistory: [],
+    foundAnswer: false,
   });
 
   return (

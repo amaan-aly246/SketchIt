@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { ChatMssg } from "../types/types";
 import { useEffect, useState } from "react";
+import { useUserHook } from "../Context/UserContext";
 import socket from "../config/websocket";
 
 const testData = [
@@ -21,8 +22,18 @@ const testData = [
 ];
 const ChatScreen = () => {
   const [chatMessages, setChatMessages] = useState<ChatMssg[]>([]);
+  const {
+    setUserData,
+    userData: { userId },
+  } = useUserHook();
   useEffect(() => {
     socket.on("receivemessage", (mssg: ChatMssg) => {
+      if (mssg.isCorrect && mssg.authorId == userId) {
+        setUserData((prevData) => ({
+          ...prevData,
+          foundAnswer: true,
+        }));
+      }
       setChatMessages((prevMessages) => [mssg, ...prevMessages]);
     });
 
