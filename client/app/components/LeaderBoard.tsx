@@ -2,30 +2,11 @@ import { View, Text, FlatList, StyleSheet } from "react-native";
 import { useState, useEffect } from "react";
 import React from "react";
 import socket from "../config/websocket";
-const data = [
-  {
-    id: 1,
-    name: "amaan",
-    rank: "12",
-    drawing: false,
-  },
-  {
-    id: 2,
-    name: "amaan 2",
-    rank: "12",
-    drawing: false,
-  },
-];
-type participant = {
-  userId: string;
-  userName: string;
-};
+import { useRoomHook } from "../Context/RoomContext";
 const LeaderBoard = () => {
-  const [participants, setParticipants] = useState<participant[]>([]);
-
+  const { setParticipants, participants } = useRoomHook();
   useEffect(() => {
     if (socket.connected) {
-      console.log("LeaderBoard Mounted. Socket Connected:", socket.connected);
       socket.on("updateParticipants", (userList) => {
         console.log("✅ Received list:", userList);
         setParticipants(userList);

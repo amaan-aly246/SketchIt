@@ -21,3 +21,19 @@ export type Stroke = {
   points: { x: number; y: number }[];
   tool: "pen" | "eraser";
 };
+export type Participant = {
+  userId: string;
+  userName: string;
+  score: number;
+  foundAnswer?: boolean;
+};
+
+export type UserData = {
+  userId: string | null;
+  userName: string | null;
+  roomName: string | null;
+  roomCode: string | null;
+  canvasHistory: Stroke[];
+  foundAnswer: boolean;
+  score: number;
+};

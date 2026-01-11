@@ -16,34 +16,19 @@ import ChatScreen from "../components/ChatScreen";
 import { Ionicons } from "@expo/vector-icons";
 import LeaderBoard from "../components/LeaderBoard";
 import ScoreboardModal from "../components/ScoreboardModal";
+import { useRoomHook } from "../Context/RoomContext";
 import GameMenu from "../components/GameMenu";
 const PlayScreen = () => {
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
   const { userData, setUserData } = useUserHook();
-  const { userName, roomCode, userId, roomName } = userData;
+  const { participants } = useRoomHook();
+  const { roomCode, userId, roomName } = userData;
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
   const [paths, setPaths] = useState<DrawPath[]>([]);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [isScoreboardVisible, setIsScoreboardVisible] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const router = useRouter();
-  const participants = [
-    {
-      userId: "1",
-      userName: "amaan",
-      score: 10,
-    },
-    {
-      userId: "2",
-      userName: "amaan2",
-      score: 10,
-    },
-    {
-      userId: "3",
-      userName: "amaan3",
-      score: 10,
-    },
-  ];
   const onPressLeaveRoom = () => {
     if (!roomCode) {
       console.error(`Room code is required and its not present`);
@@ -172,7 +157,6 @@ const PlayScreen = () => {
           <Text>{roomCode} </Text>
 
           <View className="h-14 flex-row items-center justify-between px-4 bg-yellow-200">
-            <Text className="font-black text-secondary">{roomName}</Text>
             <TouchableOpacity onPress={() => setIsMenuVisible(true)}>
               <Ionicons name="menu" size={32} color="#333" />
             </TouchableOpacity>

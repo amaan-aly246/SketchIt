@@ -1,15 +1,8 @@
 import { createContext, useState, ReactNode, useContext } from "react";
+import type { UserData } from "../types/types";
 type Stroke = {
   points: { x: number; y: number }[];
   tool: "pen" | "eraser";
-};
-type UserData = {
-  userId: string | null;
-  userName: string | null;
-  roomName: string | null;
-  roomCode: string | null;
-  canvasHistory: Stroke[];
-  foundAnswer: boolean;
 };
 
 type UserContextType = {
@@ -27,6 +20,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
     roomCode: null,
     canvasHistory: [],
     foundAnswer: false,
+    score: 0,
   });
 
   return (

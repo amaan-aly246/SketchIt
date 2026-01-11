@@ -1,4 +1,5 @@
 import React from "react";
+import type { Participant } from "../types/types";
 import {
   View,
   Text,
@@ -7,12 +8,6 @@ import {
   ScrollView,
   StyleSheet,
 } from "react-native";
-
-interface Participant {
-  userId: string;
-  userName: string;
-  score?: number;
-}
 
 interface ScoreboardModalProps {
   isVisible: boolean;
