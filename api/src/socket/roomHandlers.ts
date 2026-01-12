@@ -9,7 +9,9 @@ import {
   checkRoomExists,
   deleteRoom,
   getCanvasHistory,
+  clearCanvasHistory,
 } from "../utils/redisHelpers";
+import redis from "../redis/redis";
 export const registerRoomHandlers = (io: Server, socket: Socket) => {
   // create room handler
   socket.on(
@@ -37,7 +39,9 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
           .returning();
 
         socket.join(roomCode);
-        await saveParticipants(roomCode, [{ userid: adminId, userName }]);
+        await saveParticipants(roomCode, [
+          { userId: adminId, userName, score: 0 },
+        ]);
         callback?.({ success: true, data: { userId: adminId } });
         io.to(roomCode).emit(
           "updateParticipants",
@@ -67,10 +71,11 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         .where(eq(roomTable.id, roomCode));
 
       socket.join(roomCode);
-      const isRoomExists = await checkRoomExists(roomCode);
+      const isRoomExists = await checkRoomExists(roomCode); // check room exists in redis
       if (!isRoomExists) await saveParticipants(roomCode, []);
       const participants = await getParticipants(roomCode);
-      participants.push({ userId, userName });
+      participants.push({ userId, userName, score: 0 }); // update players present in room in redis
+      await saveParticipants(roomCode, participants);
       const history = await getCanvasHistory(roomCode);
       cb?.({ success: true, data: { userId, canvasHistory: history } });
       io.to(roomCode).emit("updateParticipants", participants);
@@ -105,6 +110,8 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         // If we delete the room , due to DELETE CASCADE user entry will also be removed, preventing us from deleting it explicitly
         await db.delete(roomTable).where(eq(roomTable.id, roomCode));
         await deleteRoom(roomCode); // clear memory
+        await clearCanvasHistory(roomCode); // clear canvas from redis
+        await redis.del(`room:${roomCode}:state`); // clear
         socket.leave(roomCode);
         io.to(roomCode).emit("updateParticipants", []);
         return cb?.({

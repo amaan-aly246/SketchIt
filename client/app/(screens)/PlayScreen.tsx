@@ -46,6 +46,7 @@ const PlayScreen = () => {
           userName: null,
           canvasHistory: [],
           foundAnswer: false,
+          score: 0,
         });
         if (socket.connected) {
           socket.disconnect();

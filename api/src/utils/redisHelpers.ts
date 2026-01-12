@@ -44,3 +44,20 @@ export const getCanvasHistory = async (roomCode: string) => {
 export const clearCanvasHistory = async (roomCode: string) => {
   await redis.del(`room:${roomCode}:canvas`);
 };
+
+// Helper to increment and get the current count of correct guesses
+export const incrementCorrectGuesses = async (
+  roomCode: string
+): Promise<number> => {
+  const key = `room:${roomCode}:state`;
+  // Atomic increment: safe from race conditions
+  const count = await redis.hincrby(key, "correctGuesses", 1);
+  return count;
+};
+
+// Helper to reset the state for the next round
+export const resetRoomState = async (roomCode: string) => {
+  const key = `room:${roomCode}:state`;
+  await redis.hset(key, "correctGuesses", 0);
+  await redis.expire(key, 86400);
+};
