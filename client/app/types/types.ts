@@ -14,12 +14,12 @@ export type Response<T = unknown> = {
 
 export type DrawPath = {
   path: SkPath;
-  tool: "pen" | "eraser";
+  tool: "pen" | "eraser" | "none";
 };
 
 export type Stroke = {
   points: { x: number; y: number }[];
-  tool: "pen" | "eraser";
+  tool: "pen" | "eraser" | "none";
 };
 export type Participant = {
   userId: string;
@@ -28,7 +28,7 @@ export type Participant = {
   foundAnswer?: boolean;
 };
 
-type PlayerRole = "guesser" | "artist";
+export type PlayerRole = "guesser" | "artist";
 
 export type UserData = {
   userId: string | null;

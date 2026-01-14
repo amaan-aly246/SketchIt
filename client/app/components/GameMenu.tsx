@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,15 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 interface GameMenuProps {
   isVisible: boolean;
   onClose: () => void;
   onLeave: () => void;
   onClear: () => void;
-  setTool: (tool: "pen" | "eraser") => void;
+  setTool: (tool: "pen" | "eraser" | "none") => void;
   currentTool: string;
+  toggleScoreboard: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const GameMenu = ({
@@ -25,6 +27,7 @@ const GameMenu = ({
   onClear,
   setTool,
   currentTool,
+  toggleScoreboard,
 }: GameMenuProps) => {
   return (
     <Modal transparent visible={isVisible} animationType="none">
@@ -35,64 +38,87 @@ const GameMenu = ({
         {/* Right side: The Sliding Menu */}
         <View className="w-64 bg-white h-full p-6 shadow-2xl justify-between">
           <SafeAreaView>
-            <Text className="text-2xl font-black text-secondary mb-8">
-              MENU
-            </Text>
+            <Text className="text-2xl font-black text-primary mb-8">MENU</Text>
 
-            {/* Tool Selection */}
+            {/* Drawing related action */}
+            {currentTool != "none" ? (
+              <>
+                <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
+                  Drawing Tools
+                </Text>
+                {/* pen */}
+                <TouchableOpacity
+                  onPress={() => {
+                    setTool("pen");
+                    onClose();
+                  }}
+                  className={`flex-row items-center p-4 rounded-xl mb-2 ${currentTool === "pen" ? "bg-blue-100" : "bg-gray-50"}`}>
+                  <Ionicons
+                    name="pencil"
+                    size={24}
+                    color={currentTool === "pen" ? "#3b82f6" : "gray"}
+                  />
+                  <Text
+                    className={`ml-3 font-bold ${currentTool === "pen" ? "text-blue-600" : "text-gray-600"}`}>
+                    Pen Tool
+                  </Text>
+                </TouchableOpacity>
+                {/* eraser */}
+                <TouchableOpacity
+                  onPress={() => {
+                    setTool("eraser");
+                    onClose();
+                  }}
+                  className={`flex-row items-center p-4 rounded-xl mb-6 ${currentTool === "eraser" ? "bg-blue-100" : "bg-gray-50"}`}>
+                  <FontAwesome
+                    name="eraser"
+                    size={24}
+                    color={currentTool === "eraser" ? "#3b82f6" : "gray"}
+                  />
+                  <Text
+                    className={`ml-3 font-bold ${currentTool === "eraser" ? "text-blue-600" : "text-gray-600"}`}>
+                    Eraser
+                  </Text>
+                </TouchableOpacity>
+
+                {/* Actions */}
+                <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
+                  Canvas Actions
+                </Text>
+                {/* Clear canvas btn */}
+                <TouchableOpacity
+                  onPress={() => {
+                    onClear();
+                    onClose();
+                  }}
+                  className="flex-row items-center p-4 bg-gray-50 rounded-xl mb-2">
+                  <Ionicons name="trash-outline" size={24} color="gray" />
+                  <Text className="ml-3 font-bold text-gray-600">
+                    Clear Canvas
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <></>
+            )}
             <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
-              Drawing Tools
+              General
             </Text>
             <TouchableOpacity
               onPress={() => {
-                setTool("pen");
                 onClose();
+                toggleScoreboard(true);
               }}
-              className={`flex-row items-center p-4 rounded-xl mb-2 ${currentTool === "pen" ? "bg-blue-100" : "bg-gray-50"}`}>
-              <Ionicons
-                name="pencil"
+              className={`flex-row bg-gray-50 items-center p-4 rounded-xl mb-2 `}>
+              <MaterialCommunityIcons
+                name="scoreboard-outline"
                 size={24}
-                color={currentTool === "pen" ? "#3b82f6" : "gray"}
+                color="gray"
               />
-              <Text
-                className={`ml-3 font-bold ${currentTool === "pen" ? "text-blue-600" : "text-gray-600"}`}>
-                Pen Tool
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                setTool("eraser");
-                onClose();
-              }}
-              className={`flex-row items-center p-4 rounded-xl mb-6 ${currentTool === "eraser" ? "bg-blue-100" : "bg-gray-50"}`}>
-              <FontAwesome
-                name="eraser"
-                size={24}
-                color={currentTool === "eraser" ? "#3b82f6" : "gray"}
-              />
-              <Text
-                className={`ml-3 font-bold ${currentTool === "eraser" ? "text-blue-600" : "text-gray-600"}`}>
-                Eraser
-              </Text>
-            </TouchableOpacity>
-
-            {/* Actions */}
-            <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
-              Canvas Actions
-            </Text>
-            {/* Clear canvas btn */}
-            <TouchableOpacity
-              onPress={() => {
-                onClear();
-                onClose();
-              }}
-              className="flex-row items-center p-4 bg-gray-50 rounded-xl mb-2">
-              <Ionicons name="trash-outline" size={24} color="gray" />
-              <Text className="ml-3 font-bold text-gray-600">Clear Canvas</Text>
+              <Text className={`ml-3 font-bold text-gray-600`}>Scorecard</Text>
             </TouchableOpacity>
           </SafeAreaView>
-
+          {/* Leave room btn */}
           <TouchableOpacity
             onPress={onLeave}
             className="flex-row items-center p-4 bg-red-50 rounded-xl">

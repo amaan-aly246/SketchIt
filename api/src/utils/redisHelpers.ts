@@ -26,6 +26,8 @@ export const getParticipants = async (roomCode: string): Promise<any[]> => {
 export const deleteRoom = async (roomCode: string) => {
   const key = getRoomKey(roomCode);
   await redis.del(key);
+  const canvasKey = `room:${roomCode}:canvas`;
+  await redis.del(canvasKey); // delete canvas associated with that accound
 };
 
 export const saveStroke = async (roomCode: string, strokeData: any) => {

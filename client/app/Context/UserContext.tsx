@@ -1,9 +1,5 @@
 import { createContext, useState, ReactNode, useContext } from "react";
 import type { UserData } from "../types/types";
-type Stroke = {
-  points: { x: number; y: number }[];
-  tool: "pen" | "eraser";
-};
 
 type UserContextType = {
   userData: UserData;

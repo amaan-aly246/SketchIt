@@ -8,6 +8,8 @@ import {
 import Chat from "../components/Chat";
 import { useEffect, useState, useRef } from "react";
 import { Skia, Path, Canvas } from "@shopify/react-native-skia";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import Feather from "@expo/vector-icons/Feather";
 import socket from "../config/websocket";
 import { DrawPath } from "../types/types";
 import { useUserHook } from "../Context/UserContext";
@@ -26,10 +28,13 @@ const PlayScreen = () => {
   const { roomCode, userId, role } = userData;
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
   const [paths, setPaths] = useState<DrawPath[]>([]);
-  const [tool, setTool] = useState<"pen" | "eraser">("pen");
+  const [tool, setTool] = useState<"pen" | "eraser" | "none">("none");
   const [isScoreboardVisible, setIsScoreboardVisible] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const { current: INITIAL_TIME } = useRef(10);
+  const [currTime, setCurrTime] = useState<number>(INITIAL_TIME);
+  const [isRoundActive, setIsRoundActive] = useState<boolean>(false);
 
   const router = useRouter();
   const onPressLeaveRoom = () => {
@@ -69,8 +74,29 @@ const PlayScreen = () => {
     socket.emit("clearcanvas", roomCode);
   };
   useEffect(() => {
+    let interval: number;
+
+    if (isRoundActive) {
+      interval = setInterval(() => {
+        setCurrTime((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      // Reset timer when round end
+      setCurrTime(INITIAL_TIME);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRoundActive]);
+  useEffect(() => {
     socket.on("clearcanvas", () => {
-      console.log("cleaning event received from server ");
       setPaths([]);
     });
     socket.on(
@@ -95,23 +121,29 @@ const PlayScreen = () => {
           ...prevData,
           role: "artist",
         }));
+        setTool("pen");
       }
+      console.log("round started...");
+      setIsRoundActive(true);
     });
     socket.on("roundOver", () => {
+      console.log("round Over");
       setUserData((prevData) => ({
         ...prevData,
         foundAnswer: false,
         role: "guesser",
       }));
-      console.log("roundOver event received");
+      setTool("none");
       setIsGameOver(false);
+      setIsRoundActive(false);
       setIsScoreboardVisible(true); // pop-up the scoreboard after each round
       //  Wait 10s for scoreboard then start next round and close the scoreboard
       setTimeout(() => setIsScoreboardVisible(false), 10000);
     });
     socket.on("endGame", () => {
-      console.log(`endGame event received`);
+      console.log(`game end`);
       setIsGameOver(true);
+      setIsRoundActive(false);
       setIsScoreboardVisible(true); // pop-up the scoreboard when game ends
     });
 
@@ -194,11 +226,12 @@ const PlayScreen = () => {
       <View className="flex-1">
         {/* Top heading */}
         <View className="flex-[10] bg-yellow-200 flex-row items-center justify-around">
-          <TouchableOpacity
-            onPress={() => setIsScoreboardVisible(true)}
-            className=" bg-orange-500 p-2  ">
-            <Text className="text-white">Test Modal</Text>
-          </TouchableOpacity>
+          <View className="h-14 flex-row items-center   ">
+            <MaterialCommunityIcons name="timer" size={32} color="#396273" />
+            <View className=" h-full justify-center pl-2">
+              <Text className="text-center font-bold text-lg">{currTime}</Text>
+            </View>
+          </View>
           <Text>{roomCode} </Text>
           <Text>
             {currentRound} / {totalRounds}{" "}
@@ -208,9 +241,10 @@ const PlayScreen = () => {
             className=" bg-orange-500 p-2  ">
             <Text className="text-white">Start Game </Text>
           </TouchableOpacity>
+          {/*  menu btn */}
           <View className="h-14 flex-row items-center justify-between px-4 bg-yellow-200">
             <TouchableOpacity onPress={() => setIsMenuVisible(true)}>
-              <Ionicons name="menu" size={32} color="#333" />
+              <Feather name="settings" size={32} color="#396273" />
             </TouchableOpacity>
           </View>
 
@@ -221,6 +255,7 @@ const PlayScreen = () => {
             onClear={onPressClearCanvas}
             setTool={setTool}
             currentTool={tool}
+            toggleScoreboard={setIsScoreboardVisible}
           />
         </View>
 
@@ -247,6 +282,7 @@ const PlayScreen = () => {
           </Canvas>
         </View>
 
+        {/*  leaderboard and chatscreen */}
         <View className="flex-[40]  bg-lime-300  ">
           <View className="flex-row flex-1">
             <LeaderBoard />
@@ -260,13 +296,11 @@ const PlayScreen = () => {
           isGameOver={isGameOver}
           onLeave={onPressLeaveRoom}
         />
-        {role == "guesser" ? (
-          <View className="  absolute bottom-0 right-0 left-0">
-            <Chat />
-          </View>
-        ) : (
-          <></>
-        )}
+
+        <View className="  absolute bottom-0 right-0 left-0">
+          <Chat role={role} />
+        </View>
+
         {/* DON'T REMOVE. FOR STYLING PURPOSES  */}
         <View className="flex-[5]">
           <Text className="text-primary -z-10">hello</Text>
