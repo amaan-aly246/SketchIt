@@ -6,7 +6,9 @@ import {
   saveParticipants,
   getParticipants,
   incrementCorrectGuesses,
+  updateRoomInfo,
 } from "../utils/redisHelpers";
+import { handleGameFlow } from "../utils/handleGameFlow";
 export const registerGameHandlers = (io: Server, socket: Socket) => {
   socket.on(
     "drawstroke",
@@ -67,9 +69,31 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
         .emit("receivemessage", { ...data, message: "hidden" });
       // Show the actual word to the person who guessed it
       socket.emit("receivemessage", data);
+
+      // calc how many people are eligible to guess (Total - 1 Artist)
+      const totalGuessers = updatedList.length - 1;
+      // Determine the cap for this specific room (Max 3, or fewer if the room is small)
+      const guessLimit = Math.min(totalGuessers, 3);
+
+      if (currentGuessCount >= guessLimit) {
+        const { endRound } = handleGameFlow(io);
+        await endRound(roomCode);
+      }
     } else {
       // Regular chat message: Send to everyone
       io.to(roomCode).emit("receivemessage", data);
     }
+  });
+
+  socket.on("startGame", async ({ roomCode, totalRounds }) => {
+    // Initialize game info in Redis
+    await updateRoomInfo(roomCode, {
+      totalRounds: 2, // hardcoded value for now, will change in future
+      currentRound: 0,
+      currentArtistIndex: 0,
+    });
+
+    const { startNewRound } = handleGameFlow(io);
+    await startNewRound(roomCode);
   });
 };

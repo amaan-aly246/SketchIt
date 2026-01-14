@@ -28,6 +28,8 @@ export type Participant = {
   foundAnswer?: boolean;
 };
 
+type PlayerRole = "guesser" | "artist";
+
 export type UserData = {
   userId: string | null;
   userName: string | null;
@@ -36,4 +38,5 @@ export type UserData = {
   canvasHistory: Stroke[];
   foundAnswer: boolean;
   score: number;
+  role: PlayerRole;
 };

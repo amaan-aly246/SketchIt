@@ -39,14 +39,11 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
           .returning();
 
         socket.join(roomCode);
-        await saveParticipants(roomCode, [
-          { userId: adminId, userName, score: 0 },
-        ]);
+        const participants = await getParticipants(roomCode);
+        participants.push({ userId: adminId, userName, score: 0 }); // update players present in room in redis
+        await saveParticipants(roomCode, participants);
         callback?.({ success: true, data: { userId: adminId } });
-        io.to(roomCode).emit(
-          "updateParticipants",
-          await getParticipants(roomCode)
-        );
+        io.to(roomCode).emit("updateParticipants", participants);
       } catch (error) {
         callback?.({ success: false, error: "Internal server error" });
       }
@@ -111,7 +108,7 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         await db.delete(roomTable).where(eq(roomTable.id, roomCode));
         await deleteRoom(roomCode); // clear memory
         await clearCanvasHistory(roomCode); // clear canvas from redis
-        await redis.del(`room:${roomCode}:state`); // clear
+        await redis.del(`room:${roomCode}:info`); // clear info about the room from redis
         socket.leave(roomCode);
         io.to(roomCode).emit("updateParticipants", []);
         return cb?.({

@@ -1,17 +1,23 @@
 import { createContext, useState, ReactNode, useContext } from "react";
 import type { Participant } from "../types/types";
+
 type RoomContextType = {
   participants: Participant[];
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
   updateUserScore: (userId: string, newScore: number) => void;
+  currentRound: number;
+  setCurrentRound: React.Dispatch<React.SetStateAction<number>>;
+  totalRounds: number;
+  setTotalRounds: React.Dispatch<React.SetStateAction<number>>;
 };
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
 
 export const RoomContextProvider = ({ children }: { children: ReactNode }) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [currentRound, setCurrentRound] = useState<number>(0);
+  const [totalRounds, setTotalRounds] = useState<number>(2); // Default to 2
 
-  // Helper to update a specific user's score without replacing the whole array
   const updateUserScore = (userId: string, newScore: number) => {
     setParticipants((prev) =>
       prev.map((p) => (p.userId === userId ? { ...p, score: newScore } : p))
@@ -20,13 +26,20 @@ export const RoomContextProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <RoomContext.Provider
-      value={{ participants, setParticipants, updateUserScore }}>
+      value={{
+        participants,
+        setParticipants,
+        updateUserScore,
+        currentRound,
+        setCurrentRound,
+        totalRounds,
+        setTotalRounds,
+      }}>
       {children}
     </RoomContext.Provider>
   );
 };
 
-// Custom Hook for easy access
 export const useRoomHook = () => {
   const context = useContext(RoomContext);
   if (!context) {

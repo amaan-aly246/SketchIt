@@ -21,13 +21,16 @@ import GameMenu from "../components/GameMenu";
 const PlayScreen = () => {
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
   const { userData, setUserData } = useUserHook();
-  const { participants } = useRoomHook();
-  const { roomCode, userId, roomName } = userData;
+  const { participants, setCurrentRound, totalRounds, currentRound } =
+    useRoomHook();
+  const { roomCode, userId, role } = userData;
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
   const [paths, setPaths] = useState<DrawPath[]>([]);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [isScoreboardVisible, setIsScoreboardVisible] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
+
   const router = useRouter();
   const onPressLeaveRoom = () => {
     if (!roomCode) {
@@ -47,7 +50,9 @@ const PlayScreen = () => {
           canvasHistory: [],
           foundAnswer: false,
           score: 0,
+          role: "guesser",
         });
+        setCurrentRound(0);
         if (socket.connected) {
           socket.disconnect();
           console.log("WebSocket connection disconnected.");
@@ -81,9 +86,41 @@ const PlayScreen = () => {
       }
     );
 
+    socket.on("roundStarted", (res) => {
+      setCurrentRound(res.currentRound);
+      setIsMenuVisible(false);
+      if (res.nextArtist.userId == userId) {
+        // this user will draw this round
+        setUserData((prevData) => ({
+          ...prevData,
+          role: "artist",
+        }));
+      }
+    });
+    socket.on("roundOver", () => {
+      setUserData((prevData) => ({
+        ...prevData,
+        foundAnswer: false,
+        role: "guesser",
+      }));
+      console.log("roundOver event received");
+      setIsGameOver(false);
+      setIsScoreboardVisible(true); // pop-up the scoreboard after each round
+      //  Wait 10s for scoreboard then start next round and close the scoreboard
+      setTimeout(() => setIsScoreboardVisible(false), 10000);
+    });
+    socket.on("endGame", () => {
+      console.log(`endGame event received`);
+      setIsGameOver(true);
+      setIsScoreboardVisible(true); // pop-up the scoreboard when game ends
+    });
+
     return () => {
       socket.off("receive");
       socket.off("clearcanvas");
+      socket.off("roundStarted");
+      socket.off("endGame");
+      socket.off("roundOver");
     };
   }, []);
   useEffect(() => {
@@ -145,6 +182,13 @@ const PlayScreen = () => {
     },
   });
 
+  const startGame = async () => {
+    if (!roomCode) {
+      console.error(`Room code is required and its not present`);
+      return;
+    }
+    socket.emit("startGame", { roomCode, totalRounds });
+  };
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <View className="flex-1">
@@ -156,7 +200,14 @@ const PlayScreen = () => {
             <Text className="text-white">Test Modal</Text>
           </TouchableOpacity>
           <Text>{roomCode} </Text>
-
+          <Text>
+            {currentRound} / {totalRounds}{" "}
+          </Text>
+          <TouchableOpacity
+            onPress={startGame}
+            className=" bg-orange-500 p-2  ">
+            <Text className="text-white">Start Game </Text>
+          </TouchableOpacity>
           <View className="h-14 flex-row items-center justify-between px-4 bg-yellow-200">
             <TouchableOpacity onPress={() => setIsMenuVisible(true)}>
               <Ionicons name="menu" size={32} color="#333" />
@@ -206,10 +257,16 @@ const PlayScreen = () => {
           isVisible={isScoreboardVisible}
           onClose={() => setIsScoreboardVisible(false)}
           participants={participants} // Pass your current participants list
+          isGameOver={isGameOver}
+          onLeave={onPressLeaveRoom}
         />
-        <View className="  absolute bottom-0 right-0 left-0">
-          <Chat />
-        </View>
+        {role == "guesser" ? (
+          <View className="  absolute bottom-0 right-0 left-0">
+            <Chat />
+          </View>
+        ) : (
+          <></>
+        )}
         {/* DON'T REMOVE. FOR STYLING PURPOSES  */}
         <View className="flex-[5]">
           <Text className="text-primary -z-10">hello</Text>

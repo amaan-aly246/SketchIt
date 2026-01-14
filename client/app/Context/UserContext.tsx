@@ -21,6 +21,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
     canvasHistory: [],
     foundAnswer: false,
     score: 0,
+    role: "guesser",
   });
 
   return (

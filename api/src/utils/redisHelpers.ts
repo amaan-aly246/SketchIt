@@ -49,15 +49,37 @@ export const clearCanvasHistory = async (roomCode: string) => {
 export const incrementCorrectGuesses = async (
   roomCode: string
 ): Promise<number> => {
-  const key = `room:${roomCode}:state`;
+  const key = `room:${roomCode}:info`;
   // Atomic increment: safe from race conditions
   const count = await redis.hincrby(key, "correctGuesses", 1);
   return count;
 };
 
-// Helper to reset the state for the next round
-export const resetRoomState = async (roomCode: string) => {
-  const key = `room:${roomCode}:state`;
-  await redis.hset(key, "correctGuesses", 0);
-  await redis.expire(key, 86400);
+// Helper to update any field in the room info hash
+export const updateRoomInfo = async (
+  roomCode: string,
+  data: Partial<{
+    totalRounds: number;
+    currentRound: number;
+    correctGuesses: number;
+    currentArtistIndex: number;
+  }>
+) => {
+  const key = `room:${roomCode}:info`;
+  // Convert object to field-value pairs for hset
+  for (const [field, value] of Object.entries(data)) {
+    await redis.hset(key, field, value.toString());
+  }
+};
+
+// Helper to get the full room info
+export const getRoomInfo = async (roomCode: string) => {
+  const key = `room:${roomCode}:info`;
+  const info = await redis.hgetall(key);
+  return {
+    totalRounds: parseInt(info.totalRounds),
+    currentRound: parseInt(info.currentRound),
+    correctGuesses: parseInt(info.correctGuesses),
+    currentArtistIndex: parseInt(info.currentArtistIndex),
+  };
 };
