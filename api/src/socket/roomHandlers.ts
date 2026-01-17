@@ -42,12 +42,15 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
         const participants = await getParticipants(roomCode);
         participants.push({ userId: adminId, userName, score: 0 }); // update players present in room in redis
         await saveParticipants(roomCode, participants);
-        callback?.({ success: true, data: { userId: adminId } });
+        callback?.({
+          success: true,
+          data: { userId: adminId, userName: userName },
+        });
         io.to(roomCode).emit("updateParticipants", participants);
       } catch (error) {
         callback?.({ success: false, error: "Internal server error" });
       }
-    }
+    },
   );
 
   socket.on("joinroom", async ({ roomCode, userName }, cb) => {
@@ -135,7 +138,7 @@ export const registerRoomHandlers = (io: Server, socket: Socket) => {
 
         //Filter out the user who is leaving
         const updatedList = currentParticipants.filter(
-          (p: any) => p.userId !== userId
+          (p: any) => p.userId !== userId,
         );
 
         if (updatedList.length > 0) {

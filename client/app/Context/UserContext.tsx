@@ -18,6 +18,7 @@ export const UserContextProvider = ({ children }: { children: ReactNode }) => {
     foundAnswer: false,
     score: 0,
     role: "guesser",
+    isAdmin: false,
   });
 
   return (

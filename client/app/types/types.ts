@@ -39,6 +39,7 @@ export type UserData = {
   foundAnswer: boolean;
   score: number;
   role: PlayerRole;
+  isAdmin: boolean;
 };
 export interface GameState {
   currentRound: number;
@@ -46,4 +47,6 @@ export interface GameState {
   roundTime: number;
   isRoundActive: boolean;
   isGameActive: boolean;
+  gameAdminId: string | null;
+  // gameAdminName : string | null ;
 }

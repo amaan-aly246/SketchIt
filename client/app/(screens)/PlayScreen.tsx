@@ -117,7 +117,7 @@ const PlayScreen = () => {
         });
 
         setPaths((prev) => [...prev, { path: newPath, tool: receivedTool }]);
-      }
+      },
     );
 
     socket.on("roundStarted", (res) => {
@@ -235,7 +235,7 @@ const PlayScreen = () => {
           "drawstroke",
           currentStrokePoints.current,
           currentPath.tool,
-          roomCode
+          roomCode,
         );
         currentStrokePoints.current = [];
         setCurrentPath(null);

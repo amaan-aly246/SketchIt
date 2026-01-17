@@ -1,5 +1,6 @@
 import { useLocalSearchParams } from "expo-router";
 import { useUserHook } from "../Context/UserContext";
+import { useRoomHook } from "../Context/RoomContext";
 import generateRoomId from "../utils/generateRoomId";
 import { Response, Stroke } from "../types/types";
 import socket from "../config/websocket";
@@ -14,6 +15,7 @@ import {
 } from "react-native";
 type CreateRoomData = {
   userId: string;
+  userName: string;
 };
 
 type JoinRoomData = {
@@ -24,6 +26,7 @@ const RoomScreen = () => {
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode: string }>();
   const { userData, setUserData } = useUserHook();
+  const { setGameState } = useRoomHook();
   const { userName, roomCode, userId, roomName } = userData;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -93,7 +96,13 @@ const RoomScreen = () => {
                 roomCode,
                 userId: data.userId,
                 roomName,
+                isAdmin: true,
               });
+              setGameState((prevState) => ({
+                ...prevState,
+                gameAdminId: data.userId,
+                gameAdminName: data.userName,
+              }));
               router.push({
                 pathname: "/PlayScreen",
               });
@@ -101,7 +110,7 @@ const RoomScreen = () => {
           } else {
             console.error("Room creation error:", response.error);
           }
-        }
+        },
       );
     } catch (error) {
       setIsSubmitting(false);
@@ -133,7 +142,7 @@ const RoomScreen = () => {
 
             if (data?.userId) {
               console.log(
-                `User ${data.userId} joined room ${roomCode} successfully.`
+                `User ${data.userId} joined room ${roomCode} successfully.`,
               );
 
               setUserData({
@@ -151,7 +160,7 @@ const RoomScreen = () => {
             console.error(`Error joining room:`, response.error);
             // do to:  show this error to the user
           }
-        }
+        },
       );
     } catch (error) {
       setIsSubmitting(false);

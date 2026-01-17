@@ -19,6 +19,7 @@ export const RoomContextProvider = ({ children }: { children: ReactNode }) => {
     roundTime: 10,
     isRoundActive: false,
     isGameActive: false,
+    gameAdminId: null,
   });
   const updateUserScore = (userId: string, newScore: number) => {
     setParticipants((prev) =>

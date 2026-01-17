@@ -13,6 +13,7 @@ import socket from "../config/websocket";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRoomHook } from "../Context/RoomContext";
+import { useUserHook } from "../Context/UserContext";
 interface GameMenuProps {
   isVisible: boolean;
   onClose: () => void;
@@ -36,19 +37,23 @@ const GameMenu = ({
 }: GameMenuProps) => {
   const {
     setGameState,
-    gameState: { totalRounds, roundTime },
+    gameState: { totalRounds, roundTime, isGameActive },
   } = useRoomHook();
-
+  const {
+    userData: { isAdmin },
+  } = useUserHook();
   const startGame = async () => {
     if (!roomCode) {
       console.error(`Room code is required and its not present`);
       return;
     }
+
+    socket.emit("startGame", { roomCode, totalRounds, roundTime });
     setGameState((prevState) => ({
       ...prevState,
       totalRounds: prevState.totalRounds,
+      isGameActive: true,
     }));
-    socket.emit("startGame", { roomCode, totalRounds, roundTime });
   };
   return (
     <Modal transparent visible={isVisible} animationType="none">
@@ -138,94 +143,103 @@ const GameMenu = ({
               <Text className={`ml-3 font-bold text-gray-600`}>Scorecard</Text>
             </TouchableOpacity>
             {/* admin settings  */}
-            <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
-              Admin
-            </Text>
-
-            <View className="flex-col  justify-between mb-4">
-              {/* Rounds Selector */}
-              <View className=" mb-2 bg-gray-100 p-3 rounded-xl items-center">
-                <Text className="text-[10px] uppercase text-gray-500 font-bold">
-                  Rounds
+            {/* show admin settings to admin only and when haven't started */}
+            {!isGameActive && isAdmin && (
+              <>
+                <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
+                  Admin
                 </Text>
-                <View className="flex-row items-center mt-1">
-                  {/* decrement rounds */}
-                  <TouchableOpacity
-                    onPress={() =>
-                      setGameState((prev) => ({
-                        ...prev,
-                        totalRounds: Math.max(1, prev.totalRounds - 1),
-                      }))
-                    }>
-                    <AntDesign name="minus" size={20} color="gray" />
-                  </TouchableOpacity>
-                  <Text className="mx-4 font-bold text-lg">{totalRounds}</Text>
-                  {/* increment rounds */}
-                  <TouchableOpacity
-                    onPress={() =>
-                      // setTotalRounds(Math.min(10, totalRounds + 1))
-                      setGameState((prev) => ({
-                        ...prev,
-                        totalRounds: Math.min(10, prev.totalRounds + 1),
-                      }))
-                    }>
-                    <AntDesign name="plus" size={20} color="gray" />
-                  </TouchableOpacity>
+
+                <View className="flex-col  justify-between mb-4">
+                  {/* Rounds Selector */}
+                  <View className=" mb-2 bg-gray-100 p-3 rounded-xl items-center">
+                    <Text className="text-[10px] uppercase text-gray-500 font-bold">
+                      Rounds
+                    </Text>
+                    <View className="flex-row items-center mt-1">
+                      {/* decrement rounds */}
+                      <TouchableOpacity
+                        onPress={() =>
+                          setGameState((prev) => ({
+                            ...prev,
+                            totalRounds: Math.max(1, prev.totalRounds - 1),
+                          }))
+                        }>
+                        <AntDesign name="minus" size={20} color="gray" />
+                      </TouchableOpacity>
+                      <Text className="mx-4 font-bold text-lg">
+                        {totalRounds}
+                      </Text>
+                      {/* increment rounds */}
+                      <TouchableOpacity
+                        onPress={() =>
+                          // setTotalRounds(Math.min(10, totalRounds + 1))
+                          setGameState((prev) => ({
+                            ...prev,
+                            totalRounds: Math.min(10, prev.totalRounds + 1),
+                          }))
+                        }>
+                        <AntDesign name="plus" size={20} color="gray" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {/* Time Selector */}
+                  <View className="  bg-gray-100 p-3 rounded-xl items-center">
+                    <Text className="text-[10px] uppercase text-gray-500 font-bold">
+                      Time per Round
+                    </Text>
+                    <View className="flex-row items-center mt-1">
+                      {/* Decrement Button */}
+                      <TouchableOpacity
+                        onPress={() =>
+                          setGameState((prev) => ({
+                            ...prev,
+                            roundTime: Math.max(10, prev.roundTime - 10),
+                          }))
+                        }>
+                        <AntDesign
+                          name="minus"
+                          size={20}
+                          color={roundTime === 10 ? "lightgray" : "gray"}
+                        />
+                      </TouchableOpacity>
+
+                      <Text className="mx-4 font-bold text-lg">
+                        {roundTime}s
+                      </Text>
+
+                      {/* Increment Button */}
+                      <TouchableOpacity
+                        onPress={() =>
+                          setGameState((prev) => ({
+                            ...prev,
+                            roundTime: Math.min(120, prev.roundTime + 10),
+                          }))
+                        }>
+                        <AntDesign
+                          name="plus"
+                          size={20}
+                          color={roundTime === 120 ? "lightgray" : "gray"}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
-              </View>
-
-              {/* Time Selector */}
-              <View className="  bg-gray-100 p-3 rounded-xl items-center">
-                <Text className="text-[10px] uppercase text-gray-500 font-bold">
-                  Time per Round
-                </Text>
-                <View className="flex-row items-center mt-1">
-                  {/* Decrement Button */}
-                  <TouchableOpacity
-                    onPress={() =>
-                      setGameState((prev) => ({
-                        ...prev,
-                        roundTime: Math.max(10, prev.roundTime - 10),
-                      }))
-                    }>
-                    <AntDesign
-                      name="minus"
-                      size={20}
-                      color={roundTime === 10 ? "lightgray" : "gray"}
-                    />
-                  </TouchableOpacity>
-
-                  <Text className="mx-4 font-bold text-lg">{roundTime}s</Text>
-
-                  {/* Increment Button */}
-                  <TouchableOpacity
-                    onPress={() =>
-                      setGameState((prev) => ({
-                        ...prev,
-                        roundTime: Math.min(120, prev.roundTime + 10),
-                      }))
-                    }>
-                    <AntDesign
-                      name="plus"
-                      size={20}
-                      color={roundTime === 120 ? "lightgray" : "gray"}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-            {/* Start Button */}
-            <TouchableOpacity
-              onPress={() => {
-                onClose();
-                startGame();
-              }}
-              className="flex-row bg-red-50 items-center p-4 rounded-xl mb-2">
-              <Entypo name="controller-play" size={24} color="red" />
-              <Text className="ml-3 font-bold text-red-500 uppercase">
-                Start Game
-              </Text>
-            </TouchableOpacity>
+                {/* Start Button */}
+                <TouchableOpacity
+                  onPress={() => {
+                    onClose();
+                    startGame();
+                  }}
+                  className="flex-row bg-red-50 items-center p-4 rounded-xl mb-2">
+                  <Entypo name="controller-play" size={24} color="red" />
+                  <Text className="ml-3 font-bold text-red-500 uppercase">
+                    Start Game
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
           </SafeAreaView>
           {/* Leave room btn */}
           <TouchableOpacity
