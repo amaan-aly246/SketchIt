@@ -5,8 +5,9 @@ import {
   clearCanvasHistory,
   getParticipants,
 } from "./redisHelpers";
+const roomTimers = new Map<string, NodeJS.Timeout>();
+
 export const handleGameFlow = (io: Server) => {
-  const roomTimers = new Map<string, NodeJS.Timeout>();
   const startNewRound = async (roomCode: string) => {
     const info = await getRoomInfo(roomCode);
     const nextRound = info.currentRound + 1;
@@ -20,6 +21,7 @@ export const handleGameFlow = (io: Server) => {
       currentRound: nextRound,
       correctGuesses: 0,
       currentArtistIndex: nextArtistIndex,
+      roundTime: info.roundTime,
     });
     await clearCanvasHistory(roomCode);
     // CLEAR any old timer just to be safe
@@ -27,13 +29,14 @@ export const handleGameFlow = (io: Server) => {
     // start and store  timer for each round
     const timer = setTimeout(() => {
       endRound(roomCode);
-    }, 10000);
+    }, info.roundTime * 1000); // s to ms
 
     roomTimers.set(roomCode, timer);
     io.to(roomCode).emit("roundStarted", {
       currentRound: nextRound,
       totalRounds: info.totalRounds,
       nextArtist: participants[nextArtistIndex], // which  will draw next
+      roundTime: info.roundTime,
     });
   };
 
@@ -51,7 +54,10 @@ export const handleGameFlow = (io: Server) => {
       //  clear canvas stored in redis
       clearCanvasHistory(roomCode);
     } else {
-      io.to(roomCode).emit("roundOver", { participants });
+      io.to(roomCode).emit("roundOver", {
+        participants,
+        roundTime: info.roundTime,
+      });
       // // Wait 10s for scoreboard then start next round
       setTimeout(() => startNewRound(roomCode), 10000);
     }

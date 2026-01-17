@@ -15,7 +15,6 @@ import { DrawPath } from "../types/types";
 import { useUserHook } from "../Context/UserContext";
 import { useRouter } from "expo-router";
 import ChatScreen from "../components/ChatScreen";
-import { Ionicons } from "@expo/vector-icons";
 import LeaderBoard from "../components/LeaderBoard";
 import ScoreboardModal from "../components/ScoreboardModal";
 import { useRoomHook } from "../Context/RoomContext";
@@ -23,8 +22,13 @@ import GameMenu from "../components/GameMenu";
 const PlayScreen = () => {
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
   const { userData, setUserData } = useUserHook();
-  const { participants, setCurrentRound, totalRounds, currentRound } =
-    useRoomHook();
+  const {
+    participants,
+    setCurrentRound,
+    totalRounds,
+    currentRound,
+    roundTime,
+  } = useRoomHook();
   const { roomCode, userId, role } = userData;
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
   const [paths, setPaths] = useState<DrawPath[]>([]);
@@ -32,8 +36,7 @@ const PlayScreen = () => {
   const [isScoreboardVisible, setIsScoreboardVisible] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
-  const { current: INITIAL_TIME } = useRef(10);
-  const [currTime, setCurrTime] = useState<number>(INITIAL_TIME);
+  const [currTime, setCurrTime] = useState<number>(roundTime);
   const [isRoundActive, setIsRoundActive] = useState<boolean>(false);
 
   const router = useRouter();
@@ -79,18 +82,15 @@ const PlayScreen = () => {
     if (isRoundActive) {
       interval = setInterval(() => {
         setCurrTime((prev) => {
+          // console.log(`time : ${prev}`);
           if (prev <= 1) {
-            clearInterval(interval);
+            setCurrTime(interval);
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
-    } else {
-      // Reset timer when round end
-      setCurrTime(INITIAL_TIME);
     }
-
     return () => {
       if (interval) clearInterval(interval);
     };
@@ -123,10 +123,11 @@ const PlayScreen = () => {
         }));
         setTool("pen");
       }
+      setCurrTime(res.roundTime);
       console.log("round started...");
       setIsRoundActive(true);
     });
-    socket.on("roundOver", () => {
+    socket.on("roundOver", (res) => {
       console.log("round Over");
       setUserData((prevData) => ({
         ...prevData,
@@ -134,6 +135,7 @@ const PlayScreen = () => {
         role: "guesser",
       }));
       setTool("none");
+      setCurrTime(res.roundTime); // reset the clock after each round
       setIsGameOver(false);
       setIsRoundActive(false);
       setIsScoreboardVisible(true); // pop-up the scoreboard after each round
@@ -214,13 +216,13 @@ const PlayScreen = () => {
     },
   });
 
-  const startGame = async () => {
-    if (!roomCode) {
-      console.error(`Room code is required and its not present`);
-      return;
-    }
-    socket.emit("startGame", { roomCode, totalRounds });
-  };
+  // const startGame = async () => {
+  //   if (!roomCode) {
+  //     console.error(`Room code is required and its not present`);
+  //     return;
+  //   }
+  //   socket.emit("startGame", { roomCode, totalRounds });
+  // };
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <View className="flex-1">
@@ -236,11 +238,11 @@ const PlayScreen = () => {
           <Text>
             {currentRound} / {totalRounds}{" "}
           </Text>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={startGame}
             className=" bg-orange-500 p-2  ">
             <Text className="text-white">Start Game </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {/*  menu btn */}
           <View className="h-14 flex-row items-center justify-between px-4 bg-yellow-200">
             <TouchableOpacity onPress={() => setIsMenuVisible(true)}>
@@ -256,6 +258,7 @@ const PlayScreen = () => {
             setTool={setTool}
             currentTool={tool}
             toggleScoreboard={setIsScoreboardVisible}
+            roomCode={roomCode}
           />
         </View>
 

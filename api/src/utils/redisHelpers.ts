@@ -1,9 +1,7 @@
 import redis from "../redis/redis";
 
-const getRoomKey = (roomCode: string) => `room:${roomCode}:participants`;
-
 export const checkRoomExists = async (roomCode: string): Promise<boolean> => {
-  const key = getRoomKey(roomCode);
+  const key = `room:${roomCode}:participants`;
   const exists = await redis.exists(key);
   return exists === 1;
 };
@@ -12,19 +10,19 @@ export const saveParticipants = async (
   roomCode: string,
   participants: any[]
 ) => {
-  const key = getRoomKey(roomCode);
+  const key = `room:${roomCode}:participants`;
   // Set the key with a 24-hour expiry (86400 seconds)
   await redis.set(key, JSON.stringify(participants), "EX", 86400);
 };
 
 export const getParticipants = async (roomCode: string): Promise<any[]> => {
-  const key = getRoomKey(roomCode);
+  const key = `room:${roomCode}:participants`;
   const data = await redis.get(key);
   return data ? JSON.parse(data) : [];
 };
 
 export const deleteRoom = async (roomCode: string) => {
-  const key = getRoomKey(roomCode);
+  const key = `room:${roomCode}:participants`;
   await redis.del(key);
   const canvasKey = `room:${roomCode}:canvas`;
   await redis.del(canvasKey); // delete canvas associated with that accound
@@ -65,13 +63,11 @@ export const updateRoomInfo = async (
     currentRound: number;
     correctGuesses: number;
     currentArtistIndex: number;
+    roundTime: number;
   }>
 ) => {
   const key = `room:${roomCode}:info`;
-  // Convert object to field-value pairs for hset
-  for (const [field, value] of Object.entries(data)) {
-    await redis.hset(key, field, value.toString());
-  }
+  await redis.hset(key, data);
 };
 
 // Helper to get the full room info
@@ -83,5 +79,6 @@ export const getRoomInfo = async (roomCode: string) => {
     currentRound: parseInt(info.currentRound),
     correctGuesses: parseInt(info.correctGuesses),
     currentArtistIndex: parseInt(info.currentArtistIndex),
+    roundTime: parseInt(info.roundTime),
   };
 };

@@ -9,6 +9,8 @@ type RoomContextType = {
   setCurrentRound: React.Dispatch<React.SetStateAction<number>>;
   totalRounds: number;
   setTotalRounds: React.Dispatch<React.SetStateAction<number>>;
+  roundTime: number;
+  setRoundTime: React.Dispatch<React.SetStateAction<number>>;
 };
 
 const RoomContext = createContext<RoomContextType | undefined>(undefined);
@@ -17,7 +19,7 @@ export const RoomContextProvider = ({ children }: { children: ReactNode }) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [currentRound, setCurrentRound] = useState<number>(0);
   const [totalRounds, setTotalRounds] = useState<number>(2); // Default to 2
-
+  const [roundTime, setRoundTime] = useState(10); // in seconds
   const updateUserScore = (userId: string, newScore: number) => {
     setParticipants((prev) =>
       prev.map((p) => (p.userId === userId ? { ...p, score: newScore } : p))
@@ -34,6 +36,8 @@ export const RoomContextProvider = ({ children }: { children: ReactNode }) => {
         setCurrentRound,
         totalRounds,
         setTotalRounds,
+        roundTime,
+        setRoundTime,
       }}>
       {children}
     </RoomContext.Provider>

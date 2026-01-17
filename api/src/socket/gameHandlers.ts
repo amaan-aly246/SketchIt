@@ -85,12 +85,13 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
     }
   });
 
-  socket.on("startGame", async ({ roomCode, totalRounds }) => {
+  socket.on("startGame", async ({ roomCode, totalRounds, roundTime }) => {
     // Initialize game info in Redis
     await updateRoomInfo(roomCode, {
-      totalRounds: 2, // hardcoded value for now, will change in future
+      totalRounds: totalRounds,
       currentRound: 0,
       currentArtistIndex: 0,
+      roundTime: roundTime,
     });
 
     const { startNewRound } = handleGameFlow(io);
