@@ -34,14 +34,20 @@ const GameMenu = ({
   toggleScoreboard,
   roomCode,
 }: GameMenuProps) => {
-  const { setTotalRounds, totalRounds, setRoundTime, roundTime } =
-    useRoomHook();
+  const {
+    setGameState,
+    gameState: { totalRounds, roundTime },
+  } = useRoomHook();
 
   const startGame = async () => {
     if (!roomCode) {
       console.error(`Room code is required and its not present`);
       return;
     }
+    setGameState((prevState) => ({
+      ...prevState,
+      totalRounds: prevState.totalRounds,
+    }));
     socket.emit("startGame", { roomCode, totalRounds, roundTime });
   };
   return (
@@ -146,7 +152,10 @@ const GameMenu = ({
                   {/* decrement rounds */}
                   <TouchableOpacity
                     onPress={() =>
-                      setTotalRounds(Math.max(1, totalRounds - 1))
+                      setGameState((prev) => ({
+                        ...prev,
+                        totalRounds: Math.max(1, prev.totalRounds - 1),
+                      }))
                     }>
                     <AntDesign name="minus" size={20} color="gray" />
                   </TouchableOpacity>
@@ -154,7 +163,11 @@ const GameMenu = ({
                   {/* increment rounds */}
                   <TouchableOpacity
                     onPress={() =>
-                      setTotalRounds(Math.min(10, totalRounds + 1))
+                      // setTotalRounds(Math.min(10, totalRounds + 1))
+                      setGameState((prev) => ({
+                        ...prev,
+                        totalRounds: Math.min(10, prev.totalRounds + 1),
+                      }))
                     }>
                     <AntDesign name="plus" size={20} color="gray" />
                   </TouchableOpacity>
@@ -170,7 +183,10 @@ const GameMenu = ({
                   {/* Decrement Button */}
                   <TouchableOpacity
                     onPress={() =>
-                      setRoundTime((prev) => Math.max(10, prev - 10))
+                      setGameState((prev) => ({
+                        ...prev,
+                        roundTime: Math.max(10, prev.roundTime - 10),
+                      }))
                     }>
                     <AntDesign
                       name="minus"
@@ -184,7 +200,10 @@ const GameMenu = ({
                   {/* Increment Button */}
                   <TouchableOpacity
                     onPress={() =>
-                      setRoundTime((prev) => Math.min(120, prev + 10))
+                      setGameState((prev) => ({
+                        ...prev,
+                        roundTime: Math.min(120, prev.roundTime + 10),
+                      }))
                     }>
                     <AntDesign
                       name="plus"

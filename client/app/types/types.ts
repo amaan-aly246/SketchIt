@@ -40,3 +40,10 @@ export type UserData = {
   score: number;
   role: PlayerRole;
 };
+export interface GameState {
+  currentRound: number;
+  totalRounds: number;
+  roundTime: number;
+  isRoundActive: boolean;
+  isGameActive: boolean;
+}

@@ -14,14 +14,14 @@ interface ScoreboardModalProps {
   onClose: () => void;
   onLeave: () => void;
   participants: Participant[];
-  isGameOver: boolean;
+  isGameActive: boolean;
 }
 
 const ScoreboardModal = ({
   isVisible,
   onClose,
   participants,
-  isGameOver,
+  isGameActive,
   onLeave,
 }: ScoreboardModalProps) => {
   return (
@@ -35,7 +35,7 @@ const ScoreboardModal = ({
         {/* Modal Content Card */}
         <View className="bg-white w-[90%] max-h-[70%] p-6 rounded-3xl shadow-2xl border-4 border-secondary">
           <Text className="text-3xl font-black text-center mb-6 text-secondary uppercase tracking-widest">
-            {isGameOver ? "Final Results" : "Round Over!"}
+            {!isGameActive ? "Final Results" : "Round Over!"}
           </Text>
 
           <ScrollView className="mb-6">
@@ -67,15 +67,15 @@ const ScoreboardModal = ({
           <TouchableOpacity
             className="bg-secondary py-4 rounded-2xl"
             onPress={() => {
-              if (isGameOver) {
+              if (isGameActive) {
                 onClose();
-                onLeave();
               } else {
                 onClose();
+                onLeave();
               }
             }}>
             <Text className="text-white text-center font-black text-xl">
-              {isGameOver ? "Leave Room" : "CONTINUE"}
+              {!isGameActive ? "Leave Room" : "CONTINUE"}
             </Text>
           </TouchableOpacity>
         </View>

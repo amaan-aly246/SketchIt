@@ -24,10 +24,14 @@ const PlayScreen = () => {
   const { userData, setUserData } = useUserHook();
   const {
     participants,
-    setCurrentRound,
-    totalRounds,
-    currentRound,
-    roundTime,
+    setGameState,
+    gameState: {
+      roundTime,
+      currentRound,
+      totalRounds,
+      isRoundActive,
+      isGameActive,
+    },
   } = useRoomHook();
   const { roomCode, userId, role } = userData;
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
@@ -35,9 +39,7 @@ const PlayScreen = () => {
   const [tool, setTool] = useState<"pen" | "eraser" | "none">("none");
   const [isScoreboardVisible, setIsScoreboardVisible] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [isGameOver, setIsGameOver] = useState(false);
   const [currTime, setCurrTime] = useState<number>(roundTime);
-  const [isRoundActive, setIsRoundActive] = useState<boolean>(false);
 
   const router = useRouter();
   const onPressLeaveRoom = () => {
@@ -60,7 +62,13 @@ const PlayScreen = () => {
           score: 0,
           role: "guesser",
         });
-        setCurrentRound(0);
+        setGameState((prevState) => ({
+          ...prevState,
+          currentRound: 0,
+          roundTime: 10,
+          totalRounds: 3,
+        }));
+
         if (socket.connected) {
           socket.disconnect();
           console.log("WebSocket connection disconnected.");
@@ -113,7 +121,10 @@ const PlayScreen = () => {
     );
 
     socket.on("roundStarted", (res) => {
-      setCurrentRound(res.currentRound);
+      setGameState((prevState) => ({
+        ...prevState,
+        currentRound: res.currentRound,
+      }));
       setIsMenuVisible(false);
       if (res.nextArtist.userId == userId) {
         // this user will draw this round
@@ -125,7 +136,11 @@ const PlayScreen = () => {
       }
       setCurrTime(res.roundTime);
       console.log("round started...");
-      setIsRoundActive(true);
+      setGameState((prevState) => ({
+        ...prevState,
+        isRoundActive: true,
+        totalRounds: res.totalRounds,
+      }));
     });
     socket.on("roundOver", (res) => {
       console.log("round Over");
@@ -136,16 +151,28 @@ const PlayScreen = () => {
       }));
       setTool("none");
       setCurrTime(res.roundTime); // reset the clock after each round
-      setIsGameOver(false);
-      setIsRoundActive(false);
+      setGameState((prevState) => ({
+        ...prevState,
+        isGameActive: true,
+      }));
+      setGameState((prevState) => ({
+        ...prevState,
+        isRoundActive: false,
+      }));
       setIsScoreboardVisible(true); // pop-up the scoreboard after each round
       //  Wait 10s for scoreboard then start next round and close the scoreboard
       setTimeout(() => setIsScoreboardVisible(false), 10000);
     });
     socket.on("endGame", () => {
       console.log(`game end`);
-      setIsGameOver(true);
-      setIsRoundActive(false);
+      setGameState((prevState) => ({
+        ...prevState,
+        isGameActive: false,
+      }));
+      setGameState((prevState) => ({
+        ...prevState,
+        isRoundActive: false,
+      }));
       setIsScoreboardVisible(true); // pop-up the scoreboard when game ends
     });
 
@@ -216,13 +243,6 @@ const PlayScreen = () => {
     },
   });
 
-  // const startGame = async () => {
-  //   if (!roomCode) {
-  //     console.error(`Room code is required and its not present`);
-  //     return;
-  //   }
-  //   socket.emit("startGame", { roomCode, totalRounds });
-  // };
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <View className="flex-1">
@@ -238,11 +258,6 @@ const PlayScreen = () => {
           <Text>
             {currentRound} / {totalRounds}{" "}
           </Text>
-          {/* <TouchableOpacity
-            onPress={startGame}
-            className=" bg-orange-500 p-2  ">
-            <Text className="text-white">Start Game </Text>
-          </TouchableOpacity> */}
           {/*  menu btn */}
           <View className="h-14 flex-row items-center justify-between px-4 bg-yellow-200">
             <TouchableOpacity onPress={() => setIsMenuVisible(true)}>
@@ -296,7 +311,7 @@ const PlayScreen = () => {
           isVisible={isScoreboardVisible}
           onClose={() => setIsScoreboardVisible(false)}
           participants={participants} // Pass your current participants list
-          isGameOver={isGameOver}
+          isGameActive={isGameActive}
           onLeave={onPressLeaveRoom}
         />
 
