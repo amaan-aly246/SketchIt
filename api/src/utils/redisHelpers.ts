@@ -8,7 +8,7 @@ export const checkRoomExists = async (roomCode: string): Promise<boolean> => {
 
 export const saveParticipants = async (
   roomCode: string,
-  participants: any[]
+  participants: any[],
 ) => {
   const key = `room:${roomCode}:participants`;
   // Set the key with a 24-hour expiry (86400 seconds)
@@ -26,6 +26,8 @@ export const deleteRoom = async (roomCode: string) => {
   await redis.del(key);
   const canvasKey = `room:${roomCode}:canvas`;
   await redis.del(canvasKey); // delete canvas associated with that accound
+  const roomInfoKey = `room:${roomCode}:info`;
+  await redis.del(roomInfoKey);
 };
 
 export const saveStroke = async (roomCode: string, strokeData: any) => {
@@ -47,7 +49,7 @@ export const clearCanvasHistory = async (roomCode: string) => {
 
 // Helper to increment and get the current count of correct guesses
 export const incrementCorrectGuesses = async (
-  roomCode: string
+  roomCode: string,
 ): Promise<number> => {
   const key = `room:${roomCode}:info`;
   // Atomic increment: safe from race conditions
@@ -64,7 +66,7 @@ export const updateRoomInfo = async (
     correctGuesses: number;
     currentArtistIndex: number;
     roundTime: number;
-  }>
+  }>,
 ) => {
   const key = `room:${roomCode}:info`;
   await redis.hset(key, data);
