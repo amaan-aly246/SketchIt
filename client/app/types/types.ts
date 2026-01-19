@@ -48,5 +48,6 @@ export interface GameState {
   isRoundActive: boolean;
   isGameActive: boolean;
   gameAdminId: string | null;
+  currentArtistId: string | null;
   // gameAdminName : string | null ;
 }

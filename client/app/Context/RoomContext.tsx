@@ -20,10 +20,11 @@ export const RoomContextProvider = ({ children }: { children: ReactNode }) => {
     isRoundActive: false,
     isGameActive: false,
     gameAdminId: null,
+    currentArtistId: null,
   });
   const updateUserScore = (userId: string, newScore: number) => {
     setParticipants((prev) =>
-      prev.map((p) => (p.userId === userId ? { ...p, score: newScore } : p))
+      prev.map((p) => (p.userId === userId ? { ...p, score: newScore } : p)),
     );
   };
   return (

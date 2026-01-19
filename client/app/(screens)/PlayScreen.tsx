@@ -67,6 +67,7 @@ const PlayScreen = () => {
           currentRound: 0,
           roundTime: 10,
           totalRounds: 3,
+          currentArtistId: null,
         }));
 
         if (socket.connected) {
@@ -131,6 +132,10 @@ const PlayScreen = () => {
         setUserData((prevData) => ({
           ...prevData,
           role: "artist",
+        }));
+        setGameState((prevState) => ({
+          ...prevState,
+          currentArtistId: userId,
         }));
         setTool("pen");
       }
