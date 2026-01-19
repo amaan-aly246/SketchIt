@@ -1,13 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import type { Participant } from "../types/types";
-import {
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-} from "react-native";
+import { View, Text, Modal, TouchableOpacity, ScrollView } from "react-native";
 
 interface ScoreboardModalProps {
   isVisible: boolean;
@@ -24,6 +17,30 @@ const ScoreboardModal = ({
   isGameActive,
   onLeave,
 }: ScoreboardModalProps) => {
+  const [currTime, setCurrTime] = useState<number>(10);
+  useEffect(() => {
+    let interval: number;
+
+    if (isVisible) {
+      setCurrTime(10); // Reset timer to 10 every time modal opens
+
+      if (isGameActive) {
+        interval = setInterval(() => {
+          setCurrTime((prev) => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isVisible]);
   return (
     <Modal
       animationType="fade"
@@ -63,19 +80,19 @@ const ScoreboardModal = ({
             ))}
           </ScrollView>
 
-          {/*  Close Button for testing purposes */}
+          {/*  Close Button  */}
           <TouchableOpacity
             className="bg-secondary py-4 rounded-2xl"
             onPress={() => {
-              if (isGameActive) {
-                onClose();
-              } else {
+              if (!isGameActive) {
                 onClose();
                 onLeave();
               }
             }}>
             <Text className="text-white text-center font-black text-xl">
-              {!isGameActive ? "Leave Room" : "CONTINUE"}
+              {!isGameActive
+                ? "Leave Room"
+                : `Next round starting in ${currTime} secs`}
             </Text>
           </TouchableOpacity>
         </View>

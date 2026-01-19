@@ -92,7 +92,7 @@ const PlayScreen = () => {
         setCurrTime((prev) => {
           // console.log(`time : ${prev}`);
           if (prev <= 1) {
-            setCurrTime(interval);
+            clearInterval(interval);
             return 0;
           }
           return prev - 1;
