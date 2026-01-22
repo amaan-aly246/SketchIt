@@ -4,25 +4,15 @@ import {
   updateRoomInfo,
   clearCanvasHistory,
   getParticipants,
+  getChoicesForArtist,
 } from "./redisHelpers";
 const roomTimers = new Map<string, NodeJS.Timeout>();
 
 export const handleGameFlow = (io: Server) => {
   const startNewRound = async (roomCode: string) => {
     const info = await getRoomInfo(roomCode);
-    const nextRound = info.currentRound + 1;
 
-    // participants
     const participants = await getParticipants(roomCode);
-    const noOfParticipants = participants.length;
-    const nextArtistIndex = (info.currentArtistIndex + 1) % noOfParticipants;
-    // Reset round-specific data in Redis
-    await updateRoomInfo(roomCode, {
-      currentRound: nextRound,
-      correctGuesses: 0,
-      currentArtistIndex: nextArtistIndex,
-      roundTime: info.roundTime,
-    });
     await clearCanvasHistory(roomCode);
     // CLEAR any old timer just to be safe
     if (roomTimers.has(roomCode)) clearTimeout(roomTimers.get(roomCode));
@@ -33,10 +23,10 @@ export const handleGameFlow = (io: Server) => {
 
     roomTimers.set(roomCode, timer);
     io.to(roomCode).emit("roundStarted", {
-      currentRound: nextRound,
+      currentRound: info.currentRound,
       totalRounds: info.totalRounds,
-      nextArtist: participants[nextArtistIndex], // which  will draw next
       roundTime: info.roundTime,
+      word: info.selectedWord,
     });
   };
 
@@ -59,9 +49,31 @@ export const handleGameFlow = (io: Server) => {
         roundTime: info.roundTime,
       });
       // // Wait 10s for scoreboard then start next round
-      setTimeout(() => startNewRound(roomCode), 10000);
+      setTimeout(() => chooseWords(roomCode), 10000);
     }
   };
 
-  return { startNewRound, endRound };
+  const chooseWords = async (roomCode: string) => {
+    const info = await getRoomInfo(roomCode);
+    const nextRound = info.currentRound + 1;
+
+    // participants
+    const participants = await getParticipants(roomCode);
+    const noOfParticipants = participants.length;
+    const nextArtistIndex = (info.currentArtistIndex + 1) % noOfParticipants;
+    await updateRoomInfo(roomCode, {
+      currentArtistIndex: nextArtistIndex,
+      currentRound: nextRound,
+      correctGuesses: 0,
+    });
+    const choices = await getChoicesForArtist(roomCode);
+    io.to(roomCode).emit("chooseWord", {
+      currentRound: nextRound,
+      totalRounds: info.totalRounds,
+      nextArtist: participants[nextArtistIndex], // which  will draw next
+      roundTime: info.roundTime,
+      words: choices, // give these words to artist for him to choose the next word
+    });
+  };
+  return { startNewRound, endRound, chooseWords };
 };

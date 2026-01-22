@@ -19,29 +19,30 @@ import LeaderBoard from "../components/LeaderBoard";
 import ScoreboardModal from "../components/ScoreboardModal";
 import { useRoomHook } from "../Context/RoomContext";
 import GameMenu from "../components/GameMenu";
+import GameActionModal from "../components/GameActionModal";
 const PlayScreen = () => {
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
   const { userData, setUserData } = useUserHook();
-  const {
-    participants,
-    setGameState,
-    gameState: {
-      roundTime,
-      currentRound,
-      totalRounds,
-      isRoundActive,
-      isGameActive,
-    },
-  } = useRoomHook();
+  const { participants, setGameState, gameState } = useRoomHook();
   const { roomCode, userId, role } = userData;
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
   const [paths, setPaths] = useState<DrawPath[]>([]);
   const [tool, setTool] = useState<"pen" | "eraser" | "none">("none");
   const [isScoreboardVisible, setIsScoreboardVisible] = useState(false);
+  const [gameActionModalVisibility, setGameActionModalVisibility] =
+    useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const { roundTime, currentRound, totalRounds, isRoundActive, isGameActive } =
+    gameState;
   const [currTime, setCurrTime] = useState<number>(roundTime);
+  const [wordChoices, setWordChoices] = useState<string[]>([]);
 
   const router = useRouter();
+  const onSelect = (word: string) => {
+    setWordChoices([]);
+    setGameActionModalVisibility(false);
+    socket.emit("wordSelected", { roomCode, word });
+  };
   const onPressLeaveRoom = () => {
     if (!roomCode) {
       console.error(`Room code is required and its not present`);
@@ -68,6 +69,7 @@ const PlayScreen = () => {
           roundTime: 10,
           totalRounds: 3,
           currentArtistId: null,
+          currentArtistName: null,
         }));
 
         if (socket.connected) {
@@ -121,33 +123,25 @@ const PlayScreen = () => {
       },
     );
 
-    socket.on("roundStarted", (res) => {
-      setGameState((prevState) => ({
-        ...prevState,
-        currentRound: res.currentRound,
-      }));
-      setIsMenuVisible(false);
-      if (res.nextArtist.userId == userId) {
-        // this user will draw this round
-        setUserData((prevData) => ({
-          ...prevData,
-          role: "artist",
-        }));
+    socket.on(
+      "roundStarted",
+      (res: {
+        currentRound: number;
+        totalRounds: number;
+        roundTime: number;
+        word: string;
+      }) => {
+        setCurrTime(res.roundTime);
+        setGameActionModalVisibility(false);
         setGameState((prevState) => ({
           ...prevState,
-          currentArtistId: userId,
+          isRoundActive: true,
+          totalRounds: res.totalRounds,
+          currentRound: res.currentRound,
         }));
-        setTool("pen");
-      }
-      setCurrTime(res.roundTime);
-      console.log("round started...");
-      setGameState((prevState) => ({
-        ...prevState,
-        isRoundActive: true,
-        totalRounds: res.totalRounds,
-      }));
-    });
-    socket.on("roundOver", (res) => {
+      },
+    );
+    socket.on("roundOver", (res: { participants: any; roundTime: number }) => {
       console.log("round Over");
       setUserData((prevData) => ({
         ...prevData,
@@ -159,9 +153,6 @@ const PlayScreen = () => {
       setGameState((prevState) => ({
         ...prevState,
         isGameActive: true,
-      }));
-      setGameState((prevState) => ({
-        ...prevState,
         isRoundActive: false,
       }));
       setIsScoreboardVisible(true); // pop-up the scoreboard after each round
@@ -173,20 +164,45 @@ const PlayScreen = () => {
       setGameState((prevState) => ({
         ...prevState,
         isGameActive: false,
-      }));
-      setGameState((prevState) => ({
-        ...prevState,
         isRoundActive: false,
       }));
       setIsScoreboardVisible(true); // pop-up the scoreboard when game ends
     });
-
+    socket.on(
+      "chooseWord",
+      (res: {
+        currentRound: number;
+        totalRounds: number;
+        nextArtist: any;
+        roundTime: number;
+        words: [];
+      }) => {
+        setGameState((prevState) => ({
+          ...prevState,
+          currentRound: res.currentRound,
+          currentArtistId: res.nextArtist.userId,
+          currentArtistName: res.nextArtist.userName,
+        }));
+        setIsMenuVisible(false);
+        setGameActionModalVisibility(true);
+        if (res.nextArtist.userId == userId) {
+          // this user will draw this round
+          setUserData((prevData) => ({
+            ...prevData,
+            role: "artist",
+          }));
+          setTool("pen");
+          setWordChoices(res.words);
+        }
+      },
+    );
     return () => {
       socket.off("receive");
       socket.off("clearcanvas");
       socket.off("roundStarted");
       socket.off("endGame");
       socket.off("roundOver");
+      socket.off("chooseWord");
     };
   }, []);
   useEffect(() => {
@@ -319,7 +335,15 @@ const PlayScreen = () => {
           isGameActive={isGameActive}
           onLeave={onPressLeaveRoom}
         />
-
+        {/* Game action modal */}
+        <GameActionModal
+          currentArtistId={gameState.currentArtistId}
+          userId={userData.userId}
+          artistName={gameState.currentArtistName}
+          isVisible={gameActionModalVisibility}
+          words={wordChoices}
+          onSelect={onSelect}
+        />
         <View className="  absolute bottom-0 right-0 left-0">
           <Chat role={role} />
         </View>

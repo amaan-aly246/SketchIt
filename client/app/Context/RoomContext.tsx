@@ -21,6 +21,7 @@ export const RoomContextProvider = ({ children }: { children: ReactNode }) => {
     isGameActive: false,
     gameAdminId: null,
     currentArtistId: null,
+    currentArtistName: null,
   });
   const updateUserScore = (userId: string, newScore: number) => {
     setParticipants((prev) =>

@@ -1,5 +1,5 @@
 import redis from "../redis/redis";
-
+import axios from "axios";
 export const checkRoomExists = async (roomCode: string): Promise<boolean> => {
   const key = `room:${roomCode}:participants`;
   const exists = await redis.exists(key);
@@ -28,6 +28,8 @@ export const deleteRoom = async (roomCode: string) => {
   await redis.del(canvasKey); // delete canvas associated with that accound
   const roomInfoKey = `room:${roomCode}:info`;
   await redis.del(roomInfoKey);
+  const wordPoolKey = `room:${roomCode}:wordPool`;
+  await redis.del(wordPoolKey);
 };
 
 export const saveStroke = async (roomCode: string, strokeData: any) => {
@@ -66,6 +68,7 @@ export const updateRoomInfo = async (
     correctGuesses: number;
     currentArtistIndex: number;
     roundTime: number;
+    selectedWord: string;
   }>,
 ) => {
   const key = `room:${roomCode}:info`;
@@ -82,5 +85,29 @@ export const getRoomInfo = async (roomCode: string) => {
     correctGuesses: parseInt(info.correctGuesses),
     currentArtistIndex: parseInt(info.currentArtistIndex),
     roundTime: parseInt(info.roundTime),
+    selectedWord: info.selectedWord,
   };
+};
+
+export const setupWordPool = async (roomCode: string) => {
+  const response = await axios.get(
+    "https://api.datamuse.com/words?ml=objects&max=50",
+  );
+  const words = response.data
+    .map((item: any) => item.word)
+    .filter((w: string) => !w.includes(" ")); // Filter out phrases
+
+  const key = `room:${roomCode}:wordPool`;
+  await redis.sadd(key, ...words);
+  await redis.expire(key, 3600);
+};
+export const getChoicesForArtist = async (roomCode: string) => {
+  const key = `room:${roomCode}:wordPool`;
+  // Pop 3 random words
+  const choices = await redis.spop(key, 3);
+
+  // Fallback if pool is empty
+  if (!choices || choices.length === 0) return ["Apple", "Cloud", "Sword"];
+
+  return choices;
 };

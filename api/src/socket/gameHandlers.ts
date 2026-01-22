@@ -7,6 +7,7 @@ import {
   getParticipants,
   incrementCorrectGuesses,
   updateRoomInfo,
+  setupWordPool,
 } from "../utils/redisHelpers";
 import { handleGameFlow } from "../utils/handleGameFlow";
 export const registerGameHandlers = (io: Server, socket: Socket) => {
@@ -15,12 +16,12 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
     async (
       points: { x: number; y: number }[],
       tool: "pen" | "eraser",
-      roomCode: string
+      roomCode: string,
     ) => {
       await saveStroke(roomCode, { points, tool });
       // Broadcast the stroke to everyone in the room except the sender
       socket.to(roomCode).emit("receive", points, tool);
-    }
+    },
   );
 
   socket.on("clearcanvas", async (roomCode: string) => {
@@ -86,14 +87,22 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
   });
 
   socket.on("startGame", async ({ roomCode, totalRounds, roundTime }) => {
+    // create word pool for this game
+    await setupWordPool(roomCode);
     // Initialize game info in Redis
     await updateRoomInfo(roomCode, {
       totalRounds: totalRounds,
       currentRound: 0,
-      currentArtistIndex: 0,
+      currentArtistIndex: -1,
       roundTime: roundTime,
+      selectedWord: "",
     });
+    const { chooseWords } = handleGameFlow(io);
+    await chooseWords(roomCode);
+  });
 
+  socket.on("wordSelected", async ({ roomCode, word }) => {
+    await updateRoomInfo(roomCode, { selectedWord: word });
     const { startNewRound } = handleGameFlow(io);
     await startNewRound(roomCode);
   });

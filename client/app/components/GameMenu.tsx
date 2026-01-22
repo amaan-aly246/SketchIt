@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -35,10 +35,8 @@ const GameMenu = ({
   toggleScoreboard,
   roomCode,
 }: GameMenuProps) => {
-  const {
-    setGameState,
-    gameState: { totalRounds, roundTime, isGameActive },
-  } = useRoomHook();
+  const { setGameState, gameState } = useRoomHook();
+  const { totalRounds, roundTime, isRoundActive } = gameState;
   const {
     userData: { isAdmin },
   } = useUserHook();
@@ -55,6 +53,7 @@ const GameMenu = ({
       isGameActive: true,
     }));
   };
+
   return (
     <Modal transparent visible={isVisible} animationType="none">
       <View className="flex-1 flex-row">
@@ -66,7 +65,7 @@ const GameMenu = ({
           <SafeAreaView>
             <Text className="text-2xl font-black text-primary mb-8">MENU</Text>
             {/* Drawing related action */}
-            {currentTool != "none" ? (
+            {currentTool != "none" && (
               <>
                 <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
                   Drawing Tools
@@ -123,8 +122,6 @@ const GameMenu = ({
                   </Text>
                 </TouchableOpacity>
               </>
-            ) : (
-              <></>
             )}
             <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
               General
@@ -143,8 +140,8 @@ const GameMenu = ({
               <Text className={`ml-3 font-bold text-gray-600`}>Scorecard</Text>
             </TouchableOpacity>
             {/* admin settings  */}
-            {/* show admin settings to admin only and when haven't started */}
-            {!isGameActive && isAdmin && (
+            {/* show admin settings to admin only and when round haven't started */}
+            {isAdmin && !isRoundActive && (
               <>
                 <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
                   Admin
