@@ -1,5 +1,11 @@
 import { Server } from "socket.io";
 import {
+  ChooseWordPayload,
+  EndGamePayload,
+  RoundOverPayload,
+  RoundStartedPayload,
+} from "../../../shared/types";
+import {
   getRoomInfo,
   updateRoomInfo,
   clearCanvasHistory,
@@ -11,8 +17,6 @@ const roomTimers = new Map<string, NodeJS.Timeout>();
 export const handleGameFlow = (io: Server) => {
   const startNewRound = async (roomCode: string) => {
     const info = await getRoomInfo(roomCode);
-
-    const participants = await getParticipants(roomCode);
     await clearCanvasHistory(roomCode);
     // CLEAR any old timer just to be safe
     if (roomTimers.has(roomCode)) clearTimeout(roomTimers.get(roomCode));
@@ -20,14 +24,15 @@ export const handleGameFlow = (io: Server) => {
     const timer = setTimeout(() => {
       endRound(roomCode);
     }, info.roundTime * 1000); // s to ms
-
+    // @ts-ignore
     roomTimers.set(roomCode, timer);
-    io.to(roomCode).emit("roundStarted", {
+    const payload: RoundStartedPayload = {
       currentRound: info.currentRound,
       totalRounds: info.totalRounds,
       roundTime: info.roundTime,
       word: info.selectedWord,
-    });
+    };
+    io.to(roomCode).emit("roundStarted", payload);
   };
 
   const endRound = async (roomCode: string) => {
@@ -40,14 +45,16 @@ export const handleGameFlow = (io: Server) => {
     }
     // Check if game is over
     if (info.currentRound >= info.totalRounds) {
-      io.to(roomCode).emit("endGame", { participants });
+      const payload: EndGamePayload = { participants };
+      io.to(roomCode).emit("endGame", payload);
       //  clear canvas stored in redis
       clearCanvasHistory(roomCode);
     } else {
-      io.to(roomCode).emit("roundOver", {
+      const payload: RoundOverPayload = {
         participants,
         roundTime: info.roundTime,
-      });
+      };
+      io.to(roomCode).emit("roundOver", payload);
       // // Wait 10s for scoreboard then start next round
       setTimeout(() => chooseWords(roomCode), 10000);
     }
@@ -67,13 +74,14 @@ export const handleGameFlow = (io: Server) => {
       correctGuesses: 0,
     });
     const choices = await getChoicesForArtist(roomCode);
-    io.to(roomCode).emit("chooseWord", {
+    const playload: ChooseWordPayload = {
       currentRound: nextRound,
       totalRounds: info.totalRounds,
       nextArtist: participants[nextArtistIndex], // which  will draw next
       roundTime: info.roundTime,
       words: choices, // give these words to artist for him to choose the next word
-    });
+    };
+    io.to(roomCode).emit("chooseWord", playload);
   };
   return { startNewRound, endRound, chooseWords };
 };

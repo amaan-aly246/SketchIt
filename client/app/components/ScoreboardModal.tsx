@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import type { Participant } from "../types/types";
+import type { Participant } from "../../../shared/types";
 import { View, Text, Modal, TouchableOpacity, ScrollView } from "react-native";
 
 interface ScoreboardModalProps {

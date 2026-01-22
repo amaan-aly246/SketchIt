@@ -11,7 +11,13 @@ import { Skia, Path, Canvas } from "@shopify/react-native-skia";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import Feather from "@expo/vector-icons/Feather";
 import socket from "../config/websocket";
-import { DrawPath } from "../types/types";
+import type {
+  ChooseWordPayload,
+  GameState,
+  RoundOverPayload,
+  RoundStartedPayload,
+} from "../../../shared/types";
+import type { DrawPath } from "../localtypes";
 import { useUserHook } from "../Context/UserContext";
 import { useRouter } from "expo-router";
 import ChatScreen from "../components/ChatScreen";
@@ -63,7 +69,7 @@ const PlayScreen = () => {
           score: 0,
           role: "guesser",
         });
-        setGameState((prevState) => ({
+        setGameState((prevState: GameState) => ({
           ...prevState,
           currentRound: 0,
           roundTime: 10,
@@ -123,25 +129,17 @@ const PlayScreen = () => {
       },
     );
 
-    socket.on(
-      "roundStarted",
-      (res: {
-        currentRound: number;
-        totalRounds: number;
-        roundTime: number;
-        word: string;
-      }) => {
-        setCurrTime(res.roundTime);
-        setGameActionModalVisibility(false);
-        setGameState((prevState) => ({
-          ...prevState,
-          isRoundActive: true,
-          totalRounds: res.totalRounds,
-          currentRound: res.currentRound,
-        }));
-      },
-    );
-    socket.on("roundOver", (res: { participants: any; roundTime: number }) => {
+    socket.on("roundStarted", (res: RoundStartedPayload) => {
+      setCurrTime(res.roundTime);
+      setGameActionModalVisibility(false);
+      setGameState((prevState: GameState) => ({
+        ...prevState,
+        isRoundActive: true,
+        totalRounds: res.totalRounds,
+        currentRound: res.currentRound,
+      }));
+    });
+    socket.on("roundOver", (res: RoundOverPayload) => {
       console.log("round Over");
       setUserData((prevData) => ({
         ...prevData,
@@ -150,7 +148,7 @@ const PlayScreen = () => {
       }));
       setTool("none");
       setCurrTime(res.roundTime); // reset the clock after each round
-      setGameState((prevState) => ({
+      setGameState((prevState: GameState) => ({
         ...prevState,
         isGameActive: true,
         isRoundActive: false,
@@ -161,41 +159,32 @@ const PlayScreen = () => {
     });
     socket.on("endGame", () => {
       console.log(`game end`);
-      setGameState((prevState) => ({
+      setGameState((prevState: GameState) => ({
         ...prevState,
         isGameActive: false,
         isRoundActive: false,
       }));
       setIsScoreboardVisible(true); // pop-up the scoreboard when game ends
     });
-    socket.on(
-      "chooseWord",
-      (res: {
-        currentRound: number;
-        totalRounds: number;
-        nextArtist: any;
-        roundTime: number;
-        words: [];
-      }) => {
-        setGameState((prevState) => ({
-          ...prevState,
-          currentRound: res.currentRound,
-          currentArtistId: res.nextArtist.userId,
-          currentArtistName: res.nextArtist.userName,
+    socket.on("chooseWord", (res: ChooseWordPayload) => {
+      setGameState((prevState: GameState) => ({
+        ...prevState,
+        currentRound: res.currentRound,
+        currentArtistId: res.nextArtist.userId,
+        currentArtistName: res.nextArtist.userName,
+      }));
+      setIsMenuVisible(false);
+      setGameActionModalVisibility(true);
+      if (res.nextArtist.userId == userId) {
+        // this user will draw this round
+        setUserData((prevData) => ({
+          ...prevData,
+          role: "artist",
         }));
-        setIsMenuVisible(false);
-        setGameActionModalVisibility(true);
-        if (res.nextArtist.userId == userId) {
-          // this user will draw this round
-          setUserData((prevData) => ({
-            ...prevData,
-            role: "artist",
-          }));
-          setTool("pen");
-          setWordChoices(res.words);
-        }
-      },
-    );
+        setTool("pen");
+        setWordChoices(res.words);
+      }
+    });
     return () => {
       socket.off("receive");
       socket.off("clearcanvas");

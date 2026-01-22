@@ -5,16 +5,13 @@ import socket from "../config/websocket";
 import { useRoomHook } from "../Context/RoomContext";
 import { useUserHook } from "../Context/UserContext";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { getAnimationSettingsUpdates } from "react-native-reanimated/lib/typescript/css/native";
 
 const LeaderBoard = () => {
-  const {
-    setParticipants,
-    participants,
-    gameState: { currentArtistId },
-  } = useRoomHook();
-  const {
-    userData: { userId },
-  } = useUserHook();
+  const { setParticipants, participants, gameState } = useRoomHook();
+  const { userData } = useUserHook();
+  const { currentArtistId } = gameState;
+  const { userId } = userData;
   // @ts-ignore
   useEffect(() => {
     if (socket.connected) {

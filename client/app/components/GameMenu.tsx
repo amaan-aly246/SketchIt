@@ -14,6 +14,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRoomHook } from "../Context/RoomContext";
 import { useUserHook } from "../Context/UserContext";
+import type { GameState } from "../../../shared/types";
 interface GameMenuProps {
   isVisible: boolean;
   onClose: () => void;
@@ -47,7 +48,7 @@ const GameMenu = ({
     }
 
     socket.emit("startGame", { roomCode, totalRounds, roundTime });
-    setGameState((prevState) => ({
+    setGameState((prevState: GameState) => ({
       ...prevState,
       totalRounds: prevState.totalRounds,
       isGameActive: true,
@@ -157,7 +158,7 @@ const GameMenu = ({
                       {/* decrement rounds */}
                       <TouchableOpacity
                         onPress={() =>
-                          setGameState((prev) => ({
+                          setGameState((prev: GameState) => ({
                             ...prev,
                             totalRounds: Math.max(1, prev.totalRounds - 1),
                           }))
@@ -170,8 +171,7 @@ const GameMenu = ({
                       {/* increment rounds */}
                       <TouchableOpacity
                         onPress={() =>
-                          // setTotalRounds(Math.min(10, totalRounds + 1))
-                          setGameState((prev) => ({
+                          setGameState((prev: GameState) => ({
                             ...prev,
                             totalRounds: Math.min(10, prev.totalRounds + 1),
                           }))
@@ -190,7 +190,7 @@ const GameMenu = ({
                       {/* Decrement Button */}
                       <TouchableOpacity
                         onPress={() =>
-                          setGameState((prev) => ({
+                          setGameState((prev : GameState) => ({
                             ...prev,
                             roundTime: Math.max(10, prev.roundTime - 10),
                           }))
@@ -209,7 +209,7 @@ const GameMenu = ({
                       {/* Increment Button */}
                       <TouchableOpacity
                         onPress={() =>
-                          setGameState((prev) => ({
+                          setGameState((prev: GameState) => ({
                             ...prev,
                             roundTime: Math.min(120, prev.roundTime + 10),
                           }))

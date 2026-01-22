@@ -3,7 +3,7 @@ import { TextInput, TouchableOpacity, View, Text } from "react-native";
 import socket from "../config/websocket";
 import { useUserHook } from "../Context/UserContext";
 import Keyboard from "./Keyboard";
-import { PlayerRole } from "../types/types";
+import { PlayerRole } from "../../../shared/types";
 interface ChatProps {
   role: PlayerRole;
 }
@@ -13,7 +13,7 @@ const Chat = ({ role }: ChatProps) => {
   } = useUserHook();
   const [message, setMessage] = useState<string>("");
   const [keyboardState, setKeyboardState] = useState<"visible" | "hidden">(
-    "hidden"
+    "hidden",
   );
 
   const handleKeyboardState = () => {

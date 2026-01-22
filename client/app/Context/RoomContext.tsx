@@ -1,6 +1,5 @@
 import { createContext, useState, ReactNode, useContext } from "react";
-import type { Participant } from "../types/types";
-import type { GameState } from "../types/types";
+import type {Participant, GameState} from "../../../shared/types"
 export interface RoomContextType {
   participants: Participant[];
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;

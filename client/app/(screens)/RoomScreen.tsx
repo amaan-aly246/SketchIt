@@ -2,7 +2,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useUserHook } from "../Context/UserContext";
 import { useRoomHook } from "../Context/RoomContext";
 import generateRoomId from "../utils/generateRoomId";
-import { Response, Stroke } from "../types/types";
+import { Response, Stroke, GameState } from "../../../shared/types";
 import socket from "../config/websocket";
 import { useState, useCallback } from "react";
 import { useRouter } from "expo-router";
@@ -98,7 +98,7 @@ const RoomScreen = () => {
                 roomName,
                 isAdmin: true,
               });
-              setGameState((prevState) => ({
+              setGameState((prevState: GameState) => ({
                 ...prevState,
                 gameAdminId: data.userId,
                 gameAdminName: data.userName,

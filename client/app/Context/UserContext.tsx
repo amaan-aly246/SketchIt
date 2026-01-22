@@ -1,5 +1,5 @@
 import { createContext, useState, ReactNode, useContext } from "react";
-import type { UserData } from "../types/types";
+import type { UserData } from "../../../shared/types";
 
 type UserContextType = {
   userData: UserData;

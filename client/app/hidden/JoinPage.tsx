@@ -4,7 +4,7 @@ import socket from "../config/websocket";
 import Chat from "../components/Chat";
 import { useUserHook } from "../Context/UserContext";
 import generateRoomId from "../utils/generateRoomId";
-import { Response } from "../types/types";
+import { Response } from "../../../shared/types";
 
 type CreateRoomData = {
   userId: string;
@@ -41,7 +41,7 @@ const JoinPage = () => {
         } else {
           console.error("error:", response.error);
         }
-      }
+      },
     );
   };
   const onPressJoinRoom = () => {
@@ -56,7 +56,7 @@ const JoinPage = () => {
       (response: Response<JoinRoomData>) => {
         if (response.success) {
           console.log(
-            `user with id : ${response.data?.userId} joined room ${roomCode}`
+            `user with id : ${response.data?.userId} joined room ${roomCode}`,
           );
           const data = response.data;
           if (data?.userId) {
@@ -70,7 +70,7 @@ const JoinPage = () => {
         } else {
           console.log(`error:`, response.error);
         }
-      }
+      },
     );
   };
 

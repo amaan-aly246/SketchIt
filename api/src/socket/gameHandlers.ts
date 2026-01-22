@@ -10,6 +10,7 @@ import {
   setupWordPool,
 } from "../utils/redisHelpers";
 import { handleGameFlow } from "../utils/handleGameFlow";
+import type { Participant } from "../types";
 export const registerGameHandlers = (io: Server, socket: Socket) => {
   socket.on(
     "drawstroke",
@@ -53,7 +54,7 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
 
       //  Update Participant List in Redis
       const participants = await getParticipants(roomCode);
-      const updatedList = participants.map((p) => {
+      const updatedList: Participant[] = participants.map((p) => {
         if (p.userId === userId) {
           return {
             ...p,

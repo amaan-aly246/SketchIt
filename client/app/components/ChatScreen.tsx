@@ -5,7 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
-import { ChatMssg } from "../types/types";
+// import { ChatMssg } from "../types/types";
+import type { ChatMssg } from "../../../shared/types";
 import { useEffect, useState } from "react";
 import { useUserHook } from "../Context/UserContext";
 import socket from "../config/websocket";
