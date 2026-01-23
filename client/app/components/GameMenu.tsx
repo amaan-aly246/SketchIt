@@ -38,9 +38,7 @@ const GameMenu = ({
 }: GameMenuProps) => {
   const { setGameState, gameState } = useRoomHook();
   const { totalRounds, roundTime, isRoundActive } = gameState;
-  const {
-    userData: { isAdmin },
-  } = useUserHook();
+  const { userData } = useUserHook();
   const startGame = async () => {
     if (!roomCode) {
       console.error(`Room code is required and its not present`);
@@ -142,7 +140,7 @@ const GameMenu = ({
             </TouchableOpacity>
             {/* admin settings  */}
             {/* show admin settings to admin only and when round haven't started */}
-            {isAdmin && !isRoundActive && (
+            {userData.isAdmin && !isRoundActive && (
               <>
                 <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
                   Admin
@@ -190,7 +188,7 @@ const GameMenu = ({
                       {/* Decrement Button */}
                       <TouchableOpacity
                         onPress={() =>
-                          setGameState((prev : GameState) => ({
+                          setGameState((prev: GameState) => ({
                             ...prev,
                             roundTime: Math.max(10, prev.roundTime - 10),
                           }))

@@ -11,6 +11,7 @@ import {
   clearCanvasHistory,
   getParticipants,
   getChoicesForArtist,
+  saveParticipants,
 } from "./redisHelpers";
 const roomTimers = new Map<string, NodeJS.Timeout>();
 
@@ -37,12 +38,21 @@ export const handleGameFlow = (io: Server) => {
 
   const endRound = async (roomCode: string) => {
     const info = await getRoomInfo(roomCode);
-    const participants = await getParticipants(roomCode);
+    let participants = await getParticipants(roomCode);
 
     if (roomTimers.has(roomCode)) {
       clearTimeout(roomTimers.get(roomCode));
       roomTimers.delete(roomCode);
     }
+
+    const artistIdx = info.currentArtistIndex;
+    const artist = {
+      ...participants[artistIdx],
+      // Correctly add points to the existing score
+      score: (participants[artistIdx].score || 0) + info.correctGuesses * 50,
+    };
+    participants[info.currentArtistIndex] = artist;
+    await saveParticipants(roomCode, participants); // update participants data
     // Check if game is over
     if (info.currentRound >= info.totalRounds) {
       const payload: EndGamePayload = { participants };

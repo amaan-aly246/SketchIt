@@ -13,6 +13,7 @@ import Feather from "@expo/vector-icons/Feather";
 import socket from "../config/websocket";
 import type {
   ChooseWordPayload,
+  EndGamePayload,
   GameState,
   RoundOverPayload,
   RoundStartedPayload,
@@ -29,7 +30,8 @@ import GameActionModal from "../components/GameActionModal";
 const PlayScreen = () => {
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null);
   const { userData, setUserData } = useUserHook();
-  const { participants, setGameState, gameState } = useRoomHook();
+  const { participants, setParticipants, setGameState, gameState } =
+    useRoomHook();
   const { roomCode, userId, role } = userData;
   const currentStrokePoints = useRef<{ x: number; y: number }[]>([]);
   const [paths, setPaths] = useState<DrawPath[]>([]);
@@ -145,6 +147,7 @@ const PlayScreen = () => {
     socket.on("roundOver", (res: RoundOverPayload) => {
       console.log("round Over");
       onPressClearCanvas(); // clear the canvas for the next round
+      setParticipants(res.participants);
       setUserData((prevData) => ({
         ...prevData,
         foundAnswer: false,
@@ -161,8 +164,9 @@ const PlayScreen = () => {
       //  Wait 10s for scoreboard then start next round and close the scoreboard
       setTimeout(() => setIsScoreboardVisible(false), 10000);
     });
-    socket.on("endGame", () => {
+    socket.on("endGame", (res: EndGamePayload) => {
       console.log(`game end`);
+      setParticipants(res.participants);
       onPressClearCanvas(); // clear the canvas
       setGameState((prevState: GameState) => ({
         ...prevState,
