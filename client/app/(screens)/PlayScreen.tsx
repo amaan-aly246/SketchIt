@@ -76,6 +76,9 @@ const PlayScreen = () => {
           totalRounds: 3,
           currentArtistId: null,
           currentArtistName: null,
+          isRoundActive: false,
+          isGameActive: false,
+          selectedWord: null,
         }));
 
         if (socket.connected) {
@@ -137,6 +140,7 @@ const PlayScreen = () => {
         isRoundActive: true,
         totalRounds: res.totalRounds,
         currentRound: res.currentRound,
+        selectedWord: res.word,
       }));
     });
     socket.on("roundOver", (res: RoundOverPayload) => {
@@ -257,21 +261,61 @@ const PlayScreen = () => {
     <SafeAreaView className="flex-1 bg-primary">
       <View className="flex-1">
         {/* Top heading */}
-        <View className="flex-[10] bg-yellow-200 flex-row items-center justify-around">
-          <View className="h-14 flex-row items-center   ">
-            <MaterialCommunityIcons name="timer" size={32} color="#396273" />
-            <View className=" h-full justify-center pl-2">
-              <Text className="text-center font-bold text-lg">{currTime}</Text>
+        <View className="flex-[12] bg-white border-b border-gray-100 flex-row items-center px-4 justify-between">
+          {/*  Timer & Round Info */}
+          <View className="flex-row items-center space-x-3">
+            <View className="bg-secondary/10 px-3 py-1.5 rounded-2xl flex-row items-center">
+              <MaterialCommunityIcons
+                name="timer-outline"
+                size={24}
+                color="#396273"
+              />
+              <Text className="ml-1.5 font-black text-xl text-secondary-dark">
+                {currTime}s
+              </Text>
+            </View>
+            <View className="bg-gray-100 px-3 py-1.5 rounded-2xl">
+              <Text className="font-bold text-gray-500">
+                {currentRound}/{totalRounds}
+              </Text>
             </View>
           </View>
-          <Text>{roomCode} </Text>
-          <Text>
-            {currentRound} / {totalRounds}{" "}
-          </Text>
-          {/*  menu btn */}
-          <View className="h-14 flex-row items-center justify-between px-4 bg-yellow-200">
-            <TouchableOpacity onPress={() => setIsMenuVisible(true)}>
-              <Feather name="settings" size={32} color="#396273" />
+
+          {/* Word Hint (The "Dashes") */}
+          <View className="items-center justify-center pt-2">
+            {isGameActive &&
+              (isRoundActive ? (
+                <View>
+                  <View className="flex-row space-x-1 items-end">
+                    {/* Display underscores for guessers, full word for artist */}
+                    <Text className="text-2xl font-black tracking-[4px] text-gray-800">
+                      {role === "artist"
+                        ? gameState.selectedWord
+                        : gameState.selectedWord &&
+                          "_ ".repeat(gameState?.selectedWord.length).trim()}
+                    </Text>
+                    {/* Small word length indicator at the top right of dashes */}
+                    <Text className="text-[10px] font-bold text-secondary-dark bg-secondary/10 px-1 rounded absolute -top-1 -right-4">
+                      {gameState?.selectedWord?.length}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <Text className="font-bold text-gray-400 italic">
+                  Waiting...
+                </Text>
+              ))}
+          </View>
+
+          {/*Settings & Room Code */}
+          <View className="flex-row items-center">
+            <Text className="mr-3 font-mono text-lg text-gray-400  tracking-tighter">
+              {roomCode}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setIsMenuVisible(true)}
+              className="p-2 bg-gray-50 rounded-full">
+              <Feather name="menu" size={24} color="#396273" />
             </TouchableOpacity>
           </View>
 
@@ -286,7 +330,6 @@ const PlayScreen = () => {
             roomCode={roomCode}
           />
         </View>
-
         {/* Canvas  */}
         <View className="flex-[40]  " {...panResponder.panHandlers}>
           <Canvas style={{ flex: 1, backgroundColor: "white" }}>

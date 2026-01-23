@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import type { Participant } from "../../../shared/types";
 import { View, Text, Modal, TouchableOpacity, ScrollView } from "react-native";
-
+import { useRoomHook } from "../Context/RoomContext";
 interface ScoreboardModalProps {
   isVisible: boolean;
   onClose: () => void;
@@ -18,6 +18,7 @@ const ScoreboardModal = ({
   onLeave,
 }: ScoreboardModalProps) => {
   const [currTime, setCurrTime] = useState<number>(10);
+  const { gameState } = useRoomHook();
   useEffect(() => {
     let interval: number;
 
@@ -55,6 +56,15 @@ const ScoreboardModal = ({
             {!isGameActive ? "Final Results" : "Round Over!"}
           </Text>
 
+          <View className="bg-secondary/10 py-3 px-4 rounded-2xl mb-6 items-center">
+            <Text className="text-gray-500 font-bold uppercase text-xs mb-1">
+              The word was
+            </Text>
+            <Text className="text-2xl font-black text-secondary tracking-widest uppercase">
+              {gameState.selectedWord}
+            </Text>
+          </View>
+
           <ScrollView className="mb-6">
             {participants.map((player, index) => (
               <View
@@ -80,7 +90,7 @@ const ScoreboardModal = ({
             ))}
           </ScrollView>
 
-          {/*  Close Button  */}
+          {/*   Button  */}
           <TouchableOpacity
             className="bg-secondary py-4 rounded-2xl"
             onPress={() => {

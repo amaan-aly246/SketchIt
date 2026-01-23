@@ -45,6 +45,7 @@ export interface GameState {
   currentArtistId: string | null;
   currentArtistName: string | null;
   // gameAdminName : string | null ;
+  selectedWord: string | null;
 }
 export interface ChooseWordPayload {
   currentRound: number;

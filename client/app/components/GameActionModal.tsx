@@ -24,6 +24,11 @@ const GameActionModal = ({
   words,
   onSelect,
 }: GameActionModalProps) => {
+  useEffect(() => {
+    console.log(`userId ${userId}`);
+    console.log(`currentArtistId ${currentArtistId}`);
+    console.log(`is artist ${currentArtistId == userId}`);
+  }, [userId, currentArtistId]);
   return (
     <Modal visible={isVisible} transparent animationType="fade">
       <View className="flex-1 justify-center items-center bg-black/80 p-6">

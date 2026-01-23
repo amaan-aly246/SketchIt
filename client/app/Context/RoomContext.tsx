@@ -1,5 +1,5 @@
 import { createContext, useState, ReactNode, useContext } from "react";
-import type {Participant, GameState} from "../../../shared/types"
+import type { Participant, GameState } from "../../../shared/types";
 export interface RoomContextType {
   participants: Participant[];
   setParticipants: React.Dispatch<React.SetStateAction<Participant[]>>;
@@ -21,6 +21,7 @@ export const RoomContextProvider = ({ children }: { children: ReactNode }) => {
     gameAdminId: null,
     currentArtistId: null,
     currentArtistName: null,
+    selectedWord: null,
   });
   const updateUserScore = (userId: string, newScore: number) => {
     setParticipants((prev) =>
