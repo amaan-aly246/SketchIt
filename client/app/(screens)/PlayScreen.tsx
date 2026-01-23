@@ -132,8 +132,6 @@ const PlayScreen = () => {
     );
 
     socket.on("roundStarted", (res: RoundStartedPayload) => {
-      setCurrTime(res.roundTime);
-      setGameActionModalVisibility(false);
       setGameState((prevState: GameState) => ({
         ...prevState,
         isRoundActive: true,
@@ -141,6 +139,8 @@ const PlayScreen = () => {
         currentRound: res.currentRound,
         selectedWord: res.word,
       }));
+      setCurrTime(res.roundTime);
+      setGameActionModalVisibility(false);
     });
     socket.on("roundOver", (res: RoundOverPayload) => {
       console.log("round Over");
@@ -176,6 +176,7 @@ const PlayScreen = () => {
         currentRound: res.currentRound,
         currentArtistId: res.nextArtist.userId,
         currentArtistName: res.nextArtist.userName,
+        isGameActive: true,
       }));
       setIsMenuVisible(false);
       setGameActionModalVisibility(true);
@@ -256,7 +257,10 @@ const PlayScreen = () => {
       }
     },
   });
-
+  useEffect(() => {
+    console.log(`isGameActive ${isGameActive}`);
+    console.log(`isRoundActive ${isRoundActive}`);
+  }, [isRoundActive, isGameActive]);
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <View className="flex-1">
@@ -284,26 +288,28 @@ const PlayScreen = () => {
           {/* Word Hint (The "Dashes") */}
           <View className="items-center justify-center pt-2">
             {isGameActive &&
-              (isRoundActive ? (
-                <View>
-                  <View className="flex-row space-x-1 items-end">
-                    {/* Display underscores for guessers, full word for artist */}
-                    <Text className="text-2xl font-black tracking-[4px] text-gray-800">
-                      {role === "artist"
-                        ? gameState.selectedWord
-                        : gameState.selectedWord &&
-                          "_ ".repeat(gameState?.selectedWord.length).trim()}
-                    </Text>
-                    {/* Small word length indicator at the top right of dashes */}
-                    <Text className="text-[10px] font-bold text-secondary-dark bg-secondary/10 px-1 rounded absolute -top-1 -right-4">
-                      {gameState?.selectedWord?.length}
-                    </Text>
-                  </View>
-                </View>
-              ) : (
+              (!isRoundActive ? (
                 <Text className="font-bold text-gray-400 italic">
                   Waiting...
                 </Text>
+              ) : (
+                <View className="relative">
+                  <View className="flex-row space-x-1 items-end">
+                    <Text className="text-2xl font-black tracking-[4px] text-gray-800">
+                      {role === "artist"
+                        ? gameState?.selectedWord || ""
+                        : gameState?.selectedWord
+                          ? "_ ".repeat(gameState.selectedWord.length).trim()
+                          : ""}
+                    </Text>
+
+                    {gameState?.selectedWord && (
+                      <Text className="text-[10px] font-bold text-secondary-dark bg-secondary/10 px-1 rounded absolute -top-1 -right-4">
+                        {gameState.selectedWord.length}
+                      </Text>
+                    )}
+                  </View>
+                </View>
               ))}
           </View>
 
