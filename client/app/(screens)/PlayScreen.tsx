@@ -163,6 +163,7 @@ const PlayScreen = () => {
     });
     socket.on("endGame", () => {
       console.log(`game end`);
+      onPressClearCanvas(); // clear the canvas
       setGameState((prevState: GameState) => ({
         ...prevState,
         isGameActive: false,
@@ -220,6 +221,43 @@ const PlayScreen = () => {
       setPaths(restoredPaths);
     }
   }, []);
+  // const panResponder = PanResponder.create({
+  //   onStartShouldSetPanResponder: () => true,
+
+  //   onPanResponderGrant(e) {
+  //     const { locationX, locationY } = e.nativeEvent;
+  //     const newPath = Skia.Path.Make();
+  //     newPath.moveTo(locationX, locationY);
+  //     currentStrokePoints.current = [{ x: locationX, y: locationY }];
+  //     setCurrentPath({ path: newPath, tool });
+  //   },
+
+  //   onPanResponderMove(e) {
+  //     const { locationX: x, locationY: y } = e.nativeEvent;
+  //     if (currentPath) {
+  //       currentPath.path.lineTo(x, y);
+  //       setCurrentPath({
+  //         path: currentPath.path.copy(),
+  //         tool: currentPath.tool,
+  //       });
+  //       currentStrokePoints.current.push({ x, y });
+  //     }
+  //   },
+
+  //   onPanResponderRelease() {
+  //     if (currentPath) {
+  //       setPaths((prev) => [...prev, currentPath]);
+  //       socket.emit(
+  //         "drawstroke",
+  //         currentStrokePoints.current,
+  //         currentPath.tool,
+  //         roomCode,
+  //       );
+  //       currentStrokePoints.current = [];
+  //       setCurrentPath(null);
+  //     }
+  //   },
+  // });
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
 
@@ -229,6 +267,14 @@ const PlayScreen = () => {
       newPath.moveTo(locationX, locationY);
       currentStrokePoints.current = [{ x: locationX, y: locationY }];
       setCurrentPath({ path: newPath, tool });
+
+      // Notify guesser that a new stroke has started
+      socket.emit(
+        "drawstroke",
+        [{ x: locationX, y: locationY }],
+        tool,
+        roomCode,
+      );
     },
 
     onPanResponderMove(e) {
@@ -240,18 +286,19 @@ const PlayScreen = () => {
           tool: currentPath.tool,
         });
         currentStrokePoints.current.push({ x, y });
+
+        // Emit every movement point immediately for live updates
+        socket.emit("drawstroke", currentStrokePoints.current, tool, roomCode);
       }
     },
 
     onPanResponderRelease() {
       if (currentPath) {
         setPaths((prev) => [...prev, currentPath]);
-        socket.emit(
-          "drawstroke",
-          currentStrokePoints.current,
-          currentPath.tool,
-          roomCode,
-        );
+
+        // Final emit to ensure the full path is synced
+        socket.emit("drawstroke", currentStrokePoints.current, tool, roomCode);
+
         currentStrokePoints.current = [];
         setCurrentPath(null);
       }
