@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -52,7 +52,6 @@ const GameMenu = ({
       isGameActive: true,
     }));
   };
-
   return (
     <Modal transparent visible={isVisible} animationType="none">
       <View className="flex-1 flex-row">

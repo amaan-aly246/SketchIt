@@ -50,8 +50,8 @@ const Home = () => {
           <TouchableOpacity
             onPress={() => {
               router.push({
-                pathname: "/HowToPlayScreen",
-                // pathname : "/PlayScreen" for testing purposes
+                // pathname: "/HowToPlayScreen",
+                pathname: "/PlayScreen", // for testing purposes
               });
             }}>
             <View className="ml-10 mt-10">

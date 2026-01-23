@@ -308,10 +308,10 @@ const PlayScreen = () => {
       }
     },
   });
-  useEffect(() => {
-    console.log(`isGameActive ${isGameActive}`);
-    console.log(`isRoundActive ${isRoundActive}`);
-  }, [isRoundActive, isGameActive]);
+  // useEffect(() => {
+  //   console.log(`isGameActive ${isGameActive}`);
+  //   console.log(`isRoundActive ${isRoundActive}`);
+  // }, [isRoundActive, isGameActive]);
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <View className="flex-1">
