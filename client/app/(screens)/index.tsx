@@ -50,7 +50,8 @@ const Home = () => {
           <TouchableOpacity
             onPress={() => {
               router.push({
-                pathname: "/PlayScreen",
+                pathname: "/HowToPlayScreen",
+                // pathname : "/PlayScreen" for testing purposes
               });
             }}>
             <View className="ml-10 mt-10">
@@ -65,27 +66,6 @@ const Home = () => {
             </Text>
           </TouchableOpacity>
         </View>
-
-        {/* Testing purposes */}
-        {/* <View className="flex ">
-          <TouchableOpacity
-            onPress={() => {
-              router.push({
-                pathname: "/AnotherScreen",
-              });
-            }}>
-            <View className="ml-10 mt-10">
-              <FontAwesomeIcon
-                size={40}
-                icon={faCircleInfo as any}
-                color="#F4E9D9"
-              />
-            </View>
-            <Text className="capitalize text-secondary font-NunitoItalica text-xl">
-              Another screen
-            </Text>
-          </TouchableOpacity>
-        </View> */}
       </View>
     </SafeAreaView>
   );

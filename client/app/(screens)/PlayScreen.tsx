@@ -80,7 +80,6 @@ const PlayScreen = () => {
           isGameActive: false,
           selectedWord: null,
         }));
-
         if (socket.connected) {
           socket.disconnect();
           console.log("WebSocket connection disconnected.");
