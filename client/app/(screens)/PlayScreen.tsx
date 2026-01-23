@@ -144,6 +144,7 @@ const PlayScreen = () => {
     });
     socket.on("roundOver", (res: RoundOverPayload) => {
       console.log("round Over");
+      onPressClearCanvas(); // clear the canvas for the next round
       setUserData((prevData) => ({
         ...prevData,
         foundAnswer: false,
@@ -330,7 +331,12 @@ const PlayScreen = () => {
           />
         </View>
         {/* Canvas  */}
-        <View className="flex-[40]  " {...panResponder.panHandlers}>
+        <View
+          className="flex-[40]  "
+          {...panResponder.panHandlers}
+          pointerEvents={
+            gameState.currentArtistId == userData.userId ? "auto" : "none"
+          }>
           <Canvas style={{ flex: 1, backgroundColor: "white" }}>
             {paths.map((p, i) => (
               <Path
