@@ -126,9 +126,9 @@ const GameMenu = ({
                 </TouchableOpacity>
               </>
             )}
-            <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
+            {/* <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
               General
-            </Text>
+            </Text> */}
             {/* scoreboard btn for testing only */}
             {/* <TouchableOpacity
               onPress={() => {
