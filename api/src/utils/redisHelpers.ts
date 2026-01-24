@@ -70,6 +70,7 @@ export const updateRoomInfo = async (
     roundTime: number;
     selectedWord: string;
     isRoundActive: string;
+    hintMask: string;
   }>,
 ) => {
   const key = `room:${roomCode}:info`;
@@ -88,6 +89,7 @@ export const getRoomInfo = async (roomCode: string) => {
     roundTime: parseInt(info.roundTime),
     selectedWord: info.selectedWord,
     isRoundActive: info.isRoundActive,
+    hintMask: info.hintMask,
   };
 };
 

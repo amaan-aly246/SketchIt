@@ -82,6 +82,7 @@ const PlayScreen = () => {
           isRoundActive: false,
           isGameActive: false,
           selectedWord: null,
+          hintMask: "",
         }));
         if (socket.connected) {
           socket.disconnect();
@@ -141,6 +142,7 @@ const PlayScreen = () => {
         totalRounds: res.totalRounds,
         currentRound: res.currentRound,
         selectedWord: res.word,
+        hintMask: res.hintMask,
       }));
       setCurrTime(res.roundTime);
       setGameActionModalVisibility(false);
@@ -160,6 +162,7 @@ const PlayScreen = () => {
         ...prevState,
         isGameActive: true,
         isRoundActive: false,
+        hintMask: "",
       }));
       setIsScoreboardVisible(true); // pop-up the scoreboard after each round
       //  Wait 10s for scoreboard then start next round and close the scoreboard
@@ -173,6 +176,7 @@ const PlayScreen = () => {
         ...prevState,
         isGameActive: false,
         isRoundActive: false,
+        hintMask: "",
       }));
       setIsScoreboardVisible(true); // pop-up the scoreboard when game ends
     });
@@ -196,6 +200,12 @@ const PlayScreen = () => {
         setWordChoices(res.words);
       }
     });
+    socket.on("wordHint", (res: { updatedHint: string }) => {
+      setGameState((prevState) => ({
+        ...prevState,
+        hintMask: res.updatedHint,
+      }));
+    });
     return () => {
       socket.off("receive");
       socket.off("clearcanvas");
@@ -203,6 +213,7 @@ const PlayScreen = () => {
       socket.off("endGame");
       socket.off("roundOver");
       socket.off("chooseWord");
+      socket.off("wordHint");
     };
   }, []);
   useEffect(() => {
@@ -226,43 +237,7 @@ const PlayScreen = () => {
       setPaths(restoredPaths);
     }
   }, []);
-  // const panResponder = PanResponder.create({
-  //   onStartShouldSetPanResponder: () => true,
 
-  //   onPanResponderGrant(e) {
-  //     const { locationX, locationY } = e.nativeEvent;
-  //     const newPath = Skia.Path.Make();
-  //     newPath.moveTo(locationX, locationY);
-  //     currentStrokePoints.current = [{ x: locationX, y: locationY }];
-  //     setCurrentPath({ path: newPath, tool });
-  //   },
-
-  //   onPanResponderMove(e) {
-  //     const { locationX: x, locationY: y } = e.nativeEvent;
-  //     if (currentPath) {
-  //       currentPath.path.lineTo(x, y);
-  //       setCurrentPath({
-  //         path: currentPath.path.copy(),
-  //         tool: currentPath.tool,
-  //       });
-  //       currentStrokePoints.current.push({ x, y });
-  //     }
-  //   },
-
-  //   onPanResponderRelease() {
-  //     if (currentPath) {
-  //       setPaths((prev) => [...prev, currentPath]);
-  //       socket.emit(
-  //         "drawstroke",
-  //         currentStrokePoints.current,
-  //         currentPath.tool,
-  //         roomCode,
-  //       );
-  //       currentStrokePoints.current = [];
-  //       setCurrentPath(null);
-  //     }
-  //   },
-  // });
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
 
@@ -346,19 +321,22 @@ const PlayScreen = () => {
                 </Text>
               ) : (
                 <View className="relative">
-                  <View className="flex-row space-x-1 items-end">
-                    <Text className="text-2xl font-black tracking-[4px] text-gray-800">
+                  <View className="flex-row items-center justify-center relative px-6">
+                    {/* Main Word / Hint Display */}
+                    <Text className="text-2xl font-black tracking-[6px] text-gray-800 text-center">
                       {role === "artist"
-                        ? gameState?.selectedWord || ""
-                        : gameState?.selectedWord
-                          ? "_ ".repeat(gameState.selectedWord.length).trim()
-                          : ""}
+                        ? gameState.selectedWord
+                        : gameState.hintMask ||
+                          "_".repeat(gameState.selectedWord?.length || 0)}
                     </Text>
 
+                    {/* Word Length Badge */}
                     {gameState?.selectedWord && (
-                      <Text className="text-[10px] font-bold text-secondary-dark bg-secondary/10 px-1 rounded absolute -top-1 -right-4">
-                        {gameState.selectedWord.length}
-                      </Text>
+                      <View className="absolute -right-2 -top-1 bg-secondary/20 px-1.5 py-0.5 rounded-full border border-secondary/30">
+                        <Text className="text-[10px] font-extrabold text-secondary-dark">
+                          {gameState.selectedWord.length}
+                        </Text>
+                      </View>
                     )}
                   </View>
                 </View>

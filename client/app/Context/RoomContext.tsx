@@ -22,6 +22,7 @@ export const RoomContextProvider = ({ children }: { children: ReactNode }) => {
     currentArtistId: null,
     currentArtistName: null,
     selectedWord: null,
+    hintMask: "",
   });
   const updateUserScore = (userId: string, newScore: number) => {
     setParticipants((prev) =>

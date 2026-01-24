@@ -46,6 +46,7 @@ export interface GameState {
   currentArtistName: string | null;
   // gameAdminName : string | null ;
   selectedWord: string | null;
+  hintMask: string;
 }
 export interface ChooseWordPayload {
   currentRound: number;
@@ -68,5 +69,6 @@ export interface RoundStartedPayload {
   totalRounds: number;
   roundTime: number;
   word: string; // The word to be drawn
+  hintMask: string;
 }
 export type GuessStatusEnum = "correct" | "close" | "none";

@@ -87,7 +87,7 @@ const HowToPlayScreen = () => {
           </View>
           <Text className="text-yellow-800">
             Keep an eye on the dashes at the top of the screen. They reveal the
-            number of letters !
+            number of letters and occasionally give you hint!
           </Text>
         </View>
       </ScrollView>

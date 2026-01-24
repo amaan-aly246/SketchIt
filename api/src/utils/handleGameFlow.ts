@@ -19,19 +19,26 @@ export const handleGameFlow = (io: Server) => {
   const startNewRound = async (roomCode: string) => {
     const info = await getRoomInfo(roomCode);
     await clearCanvasHistory(roomCode);
-    // CLEAR any old timer just to be safe
-    if (roomTimers.has(roomCode)) clearTimeout(roomTimers.get(roomCode));
-    // start and store  timer for each round
-    const timer = setTimeout(() => {
-      endRound(roomCode);
-    }, info.roundTime * 1000); // s to ms
-    // @ts-ignore
-    roomTimers.set(roomCode, timer);
+
+    // Reset the hintMask in Redis for the new word
+    const initialMask = "_".repeat(info.selectedWord.length);
+    await updateRoomInfo(roomCode, { hintMask: initialMask });
+
+    // Clear any old timers (
+    if (roomTimers.has(roomCode)) {
+      const existingTimer = roomTimers.get(roomCode);
+      clearInterval(existingTimer as NodeJS.Timeout);
+      roomTimers.delete(roomCode);
+    }
+
+    startRoundTimer(roomCode, info.roundTime);
+
     const payload: RoundStartedPayload = {
       currentRound: info.currentRound,
       totalRounds: info.totalRounds,
       roundTime: info.roundTime,
       word: info.selectedWord,
+      hintMask: initialMask,
     };
     io.to(roomCode).emit("roundStarted", payload);
   };
@@ -94,5 +101,63 @@ export const handleGameFlow = (io: Server) => {
     };
     io.to(roomCode).emit("chooseWord", playload);
   };
-  return { startNewRound, endRound, chooseWords };
+  const startRoundTimer = (roomCode: string, duration: number) => {
+    let timeLeft = duration;
+
+    const timer = setInterval(async () => {
+      timeLeft--;
+
+      if (timeLeft === Math.floor(duration * 0.5)) {
+        await revealRandomLetter(roomCode);
+      }
+
+      if (timeLeft === Math.floor(duration * 0.25)) {
+        await revealRandomLetter(roomCode);
+      }
+
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        roomTimers.delete(roomCode);
+        await endRound(roomCode);
+      }
+    }, 1000);
+
+    // STORE the interval so endRound can cancel it if someone guesses correctly
+    roomTimers.set(roomCode, timer);
+  };
+
+  const revealRandomLetter = async (roomCode: string) => {
+    const info = await getRoomInfo(roomCode);
+    const word = info.selectedWord;
+
+    // Create or update a 'hintMask' (e.g., "A_ _ L _")
+    // We will pick a random index that is currently an underscore and reveal it
+    const currentHint = info.hintMask || "_".repeat(word.length);
+    const hiddenIndices = [];
+
+    for (let i = 0; i < currentHint.length; i++) {
+      if (currentHint[i] === "_") hiddenIndices.push(i);
+    }
+
+    if (hiddenIndices.length > 1) {
+      // Leave at least one letter hidden
+      const randomIndex =
+        hiddenIndices[Math.floor(Math.random() * hiddenIndices.length)];
+      const newHint = currentHint.split("");
+      newHint[randomIndex] = word[randomIndex];
+
+      const updatedHint = newHint.join("");
+      await updateRoomInfo(roomCode, { hintMask: updatedHint });
+
+      // Broadcast the new hint to all guessers
+      io.to(roomCode).emit("wordHint", { updatedHint });
+    }
+  };
+  return {
+    startNewRound,
+    endRound,
+    chooseWords,
+    revealRandomLetter,
+    startRoundTimer,
+  };
 };
