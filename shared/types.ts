@@ -1,7 +1,7 @@
 export type ChatMssg = {
   message: string;
   authorId: string;
-  isCorrect: boolean;
+  status: GuessStatusEnum;
   authorName: string;
 };
 
@@ -69,3 +69,4 @@ export interface RoundStartedPayload {
   roundTime: number;
   word: string; // The word to be drawn
 }
+export type GuessStatusEnum = "correct" | "close" | "none";

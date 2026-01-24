@@ -96,6 +96,7 @@ const RoomScreen = () => {
                 roomCode,
                 userId: data.userId,
                 roomName,
+                isAdmin: true,
               });
               setGameState((prevState: GameState) => ({
                 ...prevState,

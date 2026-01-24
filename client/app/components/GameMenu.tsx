@@ -52,6 +52,11 @@ const GameMenu = ({
       isGameActive: true,
     }));
   };
+
+  // useEffect(() => {
+  //   console.log(`isRoundActive ${isRoundActive}`);
+  //   console.log(`isAdmin ${userData.isAdmin}`);
+  // }, [isRoundActive]);
   return (
     <Modal transparent visible={isVisible} animationType="none">
       <View className="flex-1 flex-row">
@@ -124,7 +129,8 @@ const GameMenu = ({
             <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
               General
             </Text>
-            <TouchableOpacity
+            {/* scoreboard btn for testing only */}
+            {/* <TouchableOpacity
               onPress={() => {
                 onClose();
                 toggleScoreboard(true);
@@ -136,7 +142,7 @@ const GameMenu = ({
                 color="gray"
               />
               <Text className={`ml-3 font-bold text-gray-600`}>Scorecard</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             {/* admin settings  */}
             {/* show admin settings to admin only and when round haven't started */}
             {userData.isAdmin && !isRoundActive && (

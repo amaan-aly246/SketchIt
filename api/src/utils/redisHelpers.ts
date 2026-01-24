@@ -69,6 +69,7 @@ export const updateRoomInfo = async (
     currentArtistIndex: number;
     roundTime: number;
     selectedWord: string;
+    isRoundActive: string;
   }>,
 ) => {
   const key = `room:${roomCode}:info`;
@@ -86,6 +87,7 @@ export const getRoomInfo = async (roomCode: string) => {
     currentArtistIndex: parseInt(info.currentArtistIndex),
     roundTime: parseInt(info.roundTime),
     selectedWord: info.selectedWord,
+    isRoundActive: info.isRoundActive,
   };
 };
 
@@ -102,6 +104,7 @@ export const setupWordPool = async (roomCode: string) => {
   await redis.expire(key, 3600);
 };
 export const getChoicesForArtist = async (roomCode: string) => {
+  return ["Apple", "Cloud", "Sword"]; // testing
   const key = `room:${roomCode}:wordPool`;
   // Pop 3 random words
   const choices = await redis.spop(key, 3);

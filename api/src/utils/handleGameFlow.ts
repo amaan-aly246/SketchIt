@@ -52,6 +52,7 @@ export const handleGameFlow = (io: Server) => {
       score: (participants[artistIdx].score || 0) + info.correctGuesses * 50,
     };
     participants[info.currentArtistIndex] = artist;
+    await updateRoomInfo(roomCode, { isRoundActive: "false" });
     await saveParticipants(roomCode, participants); // update participants data
     // Check if game is over
     if (info.currentRound >= info.totalRounds) {

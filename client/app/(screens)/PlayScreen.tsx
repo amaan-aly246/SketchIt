@@ -70,6 +70,7 @@ const PlayScreen = () => {
           foundAnswer: false,
           score: 0,
           role: "guesser",
+          isAdmin: false,
         });
         setGameState((prevState: GameState) => ({
           ...prevState,
