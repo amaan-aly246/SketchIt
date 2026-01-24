@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -24,6 +24,8 @@ interface GameMenuProps {
   currentTool: string;
   toggleScoreboard: React.Dispatch<React.SetStateAction<boolean>>;
   roomCode: string | null;
+  activeColor: string;
+  setActiveColor: (c: string) => void;
 }
 
 const GameMenu = ({
@@ -35,10 +37,20 @@ const GameMenu = ({
   currentTool,
   toggleScoreboard,
   roomCode,
+  activeColor,
+  setActiveColor,
 }: GameMenuProps) => {
   const { setGameState, gameState } = useRoomHook();
   const { totalRounds, roundTime, isRoundActive } = gameState;
   const { userData } = useUserHook();
+  const colors = [
+    "#000000", // Black
+    "#EF4444", // Red
+    "#22C55E", // Green
+    "#3B82F6", // Blue
+    "#EAB308", // Yellow
+    "#A855F7", // Purple
+  ];
   const startGame = async () => {
     if (!roomCode) {
       console.error(`Room code is required and its not present`);
@@ -73,24 +85,42 @@ const GameMenu = ({
                 <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
                   Drawing Tools
                 </Text>
-                {/* pen */}
+
+                {/* Pen Tool */}
                 <TouchableOpacity
-                  onPress={() => {
-                    setTool("pen");
-                    onClose();
-                  }}
-                  className={`flex-row items-center p-4 rounded-xl mb-2 ${currentTool === "pen" ? "bg-blue-100" : "bg-gray-50"}`}>
+                  onPress={() => setTool("pen")}
+                  className={`flex-row items-center p-4 rounded-xl mb-2 
+                  
+                  ${currentTool === "pen" ? "bg-blue-100" : "bg-gray-50"}`}>
                   <Ionicons
                     name="pencil"
                     size={24}
-                    color={currentTool === "pen" ? "#3b82f6" : "gray"}
+                    color={currentTool === "pen" ? activeColor : "gray"}
                   />
                   <Text
                     className={`ml-3 font-bold ${currentTool === "pen" ? "text-blue-600" : "text-gray-600"}`}>
                     Pen Tool
                   </Text>
                 </TouchableOpacity>
-                {/* eraser */}
+
+                {/* Color Palette (Visible when Pen is selected) */}
+                {currentTool === "pen" && (
+                  <View className="flex-row justify-between px-2 mb-4">
+                    {colors.map((c) => (
+                      <TouchableOpacity
+                        key={c}
+                        onPress={() => {
+                          setActiveColor(c);
+                          onClose();
+                        }}
+                        style={{ backgroundColor: c }}
+                        className={`w-8 h-8 rounded-full border-2 ${activeColor === c ? "border-blue-500 scale-125" : "border-transparent"}`}
+                      />
+                    ))}
+                  </View>
+                )}
+
+                {/* Eraser */}
                 <TouchableOpacity
                   onPress={() => {
                     setTool("eraser");
@@ -108,11 +138,10 @@ const GameMenu = ({
                   </Text>
                 </TouchableOpacity>
 
-                {/* Actions */}
+                {/* Canvas Actions */}
                 <Text className="text-gray-400 font-bold mb-3 uppercase text-xs">
                   Canvas Actions
                 </Text>
-                {/* Clear canvas btn */}
                 <TouchableOpacity
                   onPress={() => {
                     onClear();

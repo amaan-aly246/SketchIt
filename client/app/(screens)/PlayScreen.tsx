@@ -44,6 +44,7 @@ const PlayScreen = () => {
     gameState;
   const [currTime, setCurrTime] = useState<number>(roundTime);
   const [wordChoices, setWordChoices] = useState<string[]>([]);
+  const [activeColor, setActiveColor] = useState<string>("#000000");
 
   const router = useRouter();
   const onSelect = (word: string) => {
@@ -124,14 +125,27 @@ const PlayScreen = () => {
     });
     socket.on(
       "receive",
-      (points: { x: number; y: number }[], receivedTool: "pen" | "eraser") => {
+      (
+        points: { x: number; y: number }[],
+        receivedTool: "pen" | "eraser",
+        receivedColor: string,
+      ) => {
         const newPath = Skia.Path.Make();
+
         points.forEach((pt, i) => {
           if (i === 0) newPath.moveTo(pt.x, pt.y);
           else newPath.lineTo(pt.x, pt.y);
         });
 
-        setPaths((prev) => [...prev, { path: newPath, tool: receivedTool }]);
+        // Update state to include the color for this specific path
+        setPaths((prev) => [
+          ...prev,
+          {
+            path: newPath,
+            tool: receivedTool,
+            color: receivedColor,
+          },
+        ]);
       },
     );
 
@@ -220,19 +234,23 @@ const PlayScreen = () => {
     if (userData.canvasHistory && userData.canvasHistory.length > 0) {
       console.log("Restoring canvas history...");
 
-      const restoredPaths = userData.canvasHistory.map((stroke: any) => {
-        const skPath = Skia.Path.Make();
+      const restoredPaths: DrawPath[] = userData.canvasHistory.map(
+        (stroke: any) => {
+          const skPath = Skia.Path.Make();
 
-        stroke.points.forEach((pt: { x: number; y: number }, i: number) => {
-          if (i === 0) skPath.moveTo(pt.x, pt.y);
-          else skPath.lineTo(pt.x, pt.y);
-        });
+          stroke.points.forEach((pt: { x: number; y: number }, i: number) => {
+            if (i === 0) skPath.moveTo(pt.x, pt.y);
+            else skPath.lineTo(pt.x, pt.y);
+          });
 
-        return {
-          path: skPath,
-          tool: stroke.tool,
-        };
-      });
+          return {
+            path: skPath,
+            tool: stroke.tool,
+            // Ensure color is mapped from history, defaulting to black if missing
+            color: stroke.color || "#000000",
+          };
+        },
+      );
 
       setPaths(restoredPaths);
     }
@@ -245,15 +263,23 @@ const PlayScreen = () => {
       const { locationX, locationY } = e.nativeEvent;
       const newPath = Skia.Path.Make();
       newPath.moveTo(locationX, locationY);
-      currentStrokePoints.current = [{ x: locationX, y: locationY }];
-      setCurrentPath({ path: newPath, tool });
 
-      // Notify guesser that a new stroke has started
+      currentStrokePoints.current = [{ x: locationX, y: locationY }];
+
+      // 1. Include 'activeColor' in the local currentPath state
+      setCurrentPath({
+        path: newPath,
+        tool,
+        color: tool === "eraser" ? "#FFFFFF" : activeColor, // Force white for eraser
+      });
+
+      // 2. Notify guesser with the color included in the payload
       socket.emit(
         "drawstroke",
         [{ x: locationX, y: locationY }],
         tool,
         roomCode,
+        tool === "eraser" ? "#FFFFFF" : activeColor, // Send the color
       );
     },
 
@@ -261,14 +287,24 @@ const PlayScreen = () => {
       const { locationX: x, locationY: y } = e.nativeEvent;
       if (currentPath) {
         currentPath.path.lineTo(x, y);
+
+        // Update local UI with copied path and existing color
         setCurrentPath({
           path: currentPath.path.copy(),
           tool: currentPath.tool,
+          color: currentPath.color,
         });
+
         currentStrokePoints.current.push({ x, y });
 
-        // Emit every movement point immediately for live updates
-        socket.emit("drawstroke", currentStrokePoints.current, tool, roomCode);
+        // 3. Sync live movement with color
+        socket.emit(
+          "drawstroke",
+          currentStrokePoints.current,
+          tool,
+          roomCode,
+          currentPath.color,
+        );
       }
     },
 
@@ -276,8 +312,14 @@ const PlayScreen = () => {
       if (currentPath) {
         setPaths((prev) => [...prev, currentPath]);
 
-        // Final emit to ensure the full path is synced
-        socket.emit("drawstroke", currentStrokePoints.current, tool, roomCode);
+        // 4. Final sync with color
+        socket.emit(
+          "drawstroke",
+          currentStrokePoints.current,
+          tool,
+          roomCode,
+          currentPath.color,
+        );
 
         currentStrokePoints.current = [];
         setCurrentPath(null);
@@ -364,6 +406,8 @@ const PlayScreen = () => {
             currentTool={tool}
             toggleScoreboard={setIsScoreboardVisible}
             roomCode={roomCode}
+            activeColor={activeColor}
+            setActiveColor={setActiveColor}
           />
         </View>
         {/* Canvas  */}
@@ -378,7 +422,7 @@ const PlayScreen = () => {
               <Path
                 key={`path-${i}`}
                 path={p.path}
-                color={p.tool === "pen" ? "red" : "white"}
+                color={p.color}
                 style="stroke"
                 strokeWidth={p.tool === "pen" ? 4 : 20}
               />
@@ -386,7 +430,7 @@ const PlayScreen = () => {
             {currentPath && (
               <Path
                 path={currentPath.path}
-                color={currentPath.tool === "pen" ? "red" : "white"}
+                color={currentPath.color}
                 style="stroke"
                 strokeWidth={currentPath.tool === "pen" ? 4 : 20}
               />

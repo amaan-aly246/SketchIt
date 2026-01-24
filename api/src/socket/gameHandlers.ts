@@ -20,10 +20,11 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
       points: { x: number; y: number }[],
       tool: "pen" | "eraser",
       roomCode: string,
+      color: string,
     ) => {
-      await saveStroke(roomCode, { points, tool });
-      // Broadcast the stroke to everyone in the room except the sender
-      socket.to(roomCode).emit("receive", points, tool);
+      await saveStroke(roomCode, { points, tool, color });
+
+      socket.to(roomCode).emit("receive", points, tool, color);
     },
   );
 
