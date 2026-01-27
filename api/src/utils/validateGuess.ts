@@ -4,11 +4,11 @@ export const validateGuess = (
   wordToGuess: string,
 ): GuessStatusEnum => {
   // testing
-  if (word.trim() == "correct") return "correct";
-  if (word.trim() == "close") return "close";
-  if (word.trim() == "none") return "none";
-  //@ts-ignore
-  return;
+  // if (word.trim() == "correct") return "correct";
+  // if (word.trim() == "close") return "close";
+  // if (word.trim() == "none") return "none";
+  // //@ts-ignore
+  // return;
   const guess = word.toLowerCase().trim();
   const answer = wordToGuess.toLowerCase().trim();
 
