@@ -48,3 +48,23 @@ SketchIT doesn't just look for exact strings. It implements a **String Similarit
 ### **The Drawing Sync Architecture**
 
 To ensure the guesser sees the drawing "live" without lagging the server, SketchIT utilizes a **Streaming Stroke Model**. Instead of sending the entire drawing at once, individual coordinates are emitted during the `onPanResponderMove` event, providing a 60fps-like experience for all participants.
+
+## 📸 Screenshots
+
+### 🏠 Onboarding & Lobby
+
+|                       Main Page                       |                         Join Room                         |                         Create Room                         |
+| :---------------------------------------------------: | :-------------------------------------------------------: | :---------------------------------------------------------: |
+| <img src="./screenshots/mainpage.jpeg" width="250" /> | <img src="./screenshots/joinroompage.jpeg" width="250" /> | <img src="./screenshots/createroompage.jpeg" width="250" /> |
+
+### 🎮 Gameplay Experience
+
+|                       Artist View                       |                       Guesser View                       |                       Admin Settings                       |
+| :-----------------------------------------------------: | :------------------------------------------------------: | :--------------------------------------------------------: |
+| <img src="./screenshots/artistview.jpeg" width="250" /> | <img src="./screenshots/guesserview.jpeg" width="250" /> | <img src="./screenshots/adminsettings.jpeg" width="250" /> |
+
+### 🏁 Game Flow & Instructions
+
+|                        How to Play                         |                      Drawing Canvas                       |                         Round Over                          |
+| :--------------------------------------------------------: | :-------------------------------------------------------: | :---------------------------------------------------------: |
+| <img src="./screenshots/howtopagepage.jpeg" width="250" /> | <img src="./screenshots/drawingscreen.png" width="250" /> | <img src="./screenshots/roundovermodal.jpeg" width="250" /> |
